@@ -1,12 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
+@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
 
-@layer base {
-  body {
-    @apply bg-bone text-walnut;
-    font-family: Inter, system-ui, sans-serif;
-  }
+@theme {
+  --color-primary-bg: #FFFFFF;
+  --color-secondary-bg: #F8F9FA;
+  --color-text-main: #111111;
+  --color-text-muted: #666666;
+  --color-accent-red: #E31C25;
+  --color-border: #E5E5E5;
+  --color-black: #000000;
+  
+  --font-family-serif: 'Playfair Display', serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+  --font-family-sans: 'Inter', system-ui, sans-serif;
+}
+
+
+body {
+  background-color: var(--color-primary-bg);
+  color: var(--color-text-main);
+  font-family: var(--font-family-sans);
 }

@@ -5,19 +5,31 @@ require('dotenv').config();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/vantage';
+const PORT = process.env.PORT || 5001;
+const MONGO_URI = process.env.MONGO_URI ;
+
+const authRoutes = require('./routes/auth');
+const { authenticate } = require('./middleware/auth');
 
 mongoose
   .connect(MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
+app.use('/api/auth', authRoutes);
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Vantage API is running' });
+});
+
+app.get('/api/profile', authenticate, (req, res) => {
+  res.json({ user: req.user });
 });
 
 app.listen(PORT, () => {
