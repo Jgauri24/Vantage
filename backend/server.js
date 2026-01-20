@@ -16,6 +16,7 @@ const MONGO_URI = process.env.MONGO_URI ;
 
 const authRoutes = require('./routes/auth');
 const jobRoutes = require('./routes/jobs');
+const bidRoutes = require('./routes/bids');
 const { authenticate } = require('./middleware/auth');
 
 mongoose
@@ -25,6 +26,7 @@ mongoose
 
 app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
+app.use('/api/bids', bidRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Vantage API is running' });

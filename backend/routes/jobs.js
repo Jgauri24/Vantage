@@ -119,38 +119,50 @@ router.post('/:id/bids', authenticate, authorizeRole('Provider'), async (req, re
   }
 });
 
-router.patch('/bids/:id/accept', authenticate, authorizeRole('Client'), async (req, res) => {
-  try {
-    const bid = await Bid.findById(req.params.id).populate('job');
-    if (!bid) return res.status(404).json({ error: 'Bid not found' });
 
-    const job = await Job.findById(bid.job._id);
+
+// Submit work (Provider only)
+router.patch('/:id/submit', authenticate, authorizeRole('Provider'), async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Job not found' });
 
-    // Verify ownership
-    if (job.client.toString() !== req.user.id) {
-        return res.status(403).json({ error: 'Access denied. You can only accept bids for your own jobs.' });
+    const acceptedBid = await Bid.findOne({ job: job._id, provider: req.user.id, status: 'Accepted' });
+    if (!acceptedBid) {
+        return res.status(403).json({ error: 'Access denied. You are not the contracted provider.' });
     }
 
-    if (job.status !== 'Open') {
-        return res.status(400).json({ error: 'Job is not open for contracting.' });
+    if (job.status !== 'Contracted' && job.status !== 'In-Progress') {
+        return res.status(400).json({ error: 'Job is not in a state to be submitted.' });
     }
 
-    // Update Bid status
-    bid.status = 'Accepted';
-    await bid.save();
-
-    // Update Job status
-    job.status = 'Contracted';
+    job.status = 'Reviewing';
     await job.save();
 
-    // Reject other bids for this job
-    await Bid.updateMany(
-        { job: job._id, _id: { $ne: bid._id } },
-        { status: 'Rejected' }
-    );
+    res.json(job);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
-    res.json({ message: 'Bid accepted and contract formed', bid, job });
+// Complete job (Client only)
+router.patch('/:id/complete', authenticate, authorizeRole('Client'), async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+
+    if (job.client.toString() !== req.user.id) {
+        return res.status(403).json({ error: 'Access denied.' });
+    }
+
+    if (job.status !== 'Reviewing') {
+     return res.status(400).json({ error: 'Job is not ready for completion (must be in Reviewing state).' });
+    }
+
+    job.status = 'Completed';
+    await job.save();
+
+    res.json(job);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

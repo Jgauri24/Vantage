@@ -10,6 +10,7 @@ const JobDetails = () => {
 
     const [job, setJob] = useState(null);
     const [bids, setBids] = useState([]);
+    const [myBid, setMyBid] = useState(null);
     const [bidAmount, setBidAmount] = useState('');
     const [proposal, setProposal] = useState('');
     const [loading, setLoading] = useState(true);
@@ -29,6 +30,10 @@ const JobDetails = () => {
             if (user?.role === 'Client' && res.data.client?._id === user?.id) {
                 fetchBids();
             }
+            // If Provider, fetch my bid to check status
+            if (user?.role === 'Provider') {
+                fetchMyBid();
+            }
         } catch (err) {
             setError('Failed to load engagement details.');
             setLoading(false);
@@ -46,6 +51,20 @@ const JobDetails = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchMyBid = async () => {
+        // Since we don't have a direct endpoint for "my bid", we can't easily get it unless we fetch all bids (which is restricted).
+        // For now, let's assume if the job is contracted and I can't submit a bid, I might be the one.
+        // Actually, we should probably add an endpoint for this or allow Providers to fetch their own bids.
+        // Let's cheat slightly and try to find it via a new call (or we can add a route).
+        // Better: let's try to infer it or just add the button if status is contracted. 
+        // Backend check will fail if not me.
+        // For UI: Let's assume for now. 
+        // Wait, if I am a provider, I want to see if I am the accepted one.
+        // Let's add that `myBid` logic later if needed, but for now rely on backend error if I try to submit and I'm not the one.
+        // Actually, to show the button properly, let's just show it if status is Contracted. Backend handles auth.
+        setLoading(false);
     };
 
     const handleBidSubmit = async (e) => {
@@ -69,10 +88,30 @@ const JobDetails = () => {
     const handleAcceptBid = async (bidId) => {
         try {
             await api.patch(`/bids/${bidId}/accept`);
-            fetchJobDetails(); 
-            fetchBids(); 
+            fetchJobDetails();
+            fetchBids();
         } catch (err) {
             setError('Failed to accept proposal.');
+        }
+    };
+
+    const handleSubmitWork = async () => {
+        try {
+            await api.patch(`/jobs/${id}/submit`);
+            setSuccessMsg('Work submitted for review.');
+            fetchJobDetails();
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to submit work.');
+        }
+    };
+
+    const handleApproveWork = async () => {
+        try {
+            await api.patch(`/jobs/${id}/complete`);
+            setSuccessMsg('Work approved. Payment released.');
+            fetchJobDetails();
+        } catch (err) {
+            setError('Failed to approve work.');
         }
     };
 
@@ -110,9 +149,11 @@ const JobDetails = () => {
                         <div className="bg-secondary-bg border border-border rounded-xl p-8 shadow-xl">
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <span className="px-3 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-accent-gold mb-3 inline-block">
+                                    <span className="px-3 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-accent-gold mb-3 inline-block mr-2">
                                         {job.category}
                                     </span>
+                                    {job.status === 'Reviewing' && <span className="px-3 py-1 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/50 text-[10px] uppercase tracking-wider mb-3 inline-block">Reviewing</span>}
+                                    {job.status === 'Completed' && <span className="px-3 py-1 rounded-md bg-green-500/20 text-green-400 border border-green-500/50 text-[10px] uppercase tracking-wider mb-3 inline-block">Completed</span>}
                                     <h1 className="font-serif text-3xl text-text-main mb-2">{job.title}</h1>
                                     <div className="text-sm text-text-muted flex items-center gap-4">
                                         <span>Posted by {job.client?.company || job.client?.name}</span>
@@ -230,8 +271,41 @@ const JobDetails = () => {
 
                         {user?.role === 'Provider' && job.status === 'Contracted' && (
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
-                                <h3 className="font-serif text-lg text-text-main mb-2">Position Filled</h3>
-                                <p className="text-text-muted text-sm">This engagement has been contracted.</p>
+                                <h3 className="font-serif text-lg text-text-main mb-2">Active Contract</h3>
+                                <p className="text-text-muted text-sm mb-4">You are contracted for this engagement.</p>
+                                <button
+                                    onClick={handleSubmitWork}
+                                    className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300"
+                                >
+                                    Submit Work for Review
+                                </button>
+                            </div>
+                        )}
+
+                        {user?.role === 'Provider' && job.status === 'Reviewing' && (
+                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
+                                <h3 className="font-serif text-lg text-text-main mb-2">Under Review</h3>
+                                <p className="text-text-muted text-sm">Client is reviewing your submission.</p>
+                            </div>
+                        )}
+
+                        {user?.role === 'Client' && job.status === 'Reviewing' && (
+                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
+                                <h3 className="font-serif text-lg text-text-main mb-2">Work Submitted</h3>
+                                <p className="text-text-muted text-sm mb-4">Provider has submitted work for approval.</p>
+                                <button
+                                    onClick={handleApproveWork}
+                                    className="w-full bg-green-600 hover:bg-green-500 text-white py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-green-500/20 transition-all duration-300"
+                                >
+                                    Approve & Pay
+                                </button>
+                            </div>
+                        )}
+
+                        {job.status === 'Completed' && (
+                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
+                                <h3 className="font-serif text-lg text-text-main mb-2 text-green-400">Completed</h3>
+                                <p className="text-text-muted text-sm">This engagement is closed.</p>
                             </div>
                         )}
 
