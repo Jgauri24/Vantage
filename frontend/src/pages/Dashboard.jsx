@@ -1,7 +1,28 @@
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+import { useState, useEffect } from 'react';
+import api from '../utils/api';
 
 const Dashboard = () => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const [activeJobs, setActiveJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDeepLedger = async () => {
+            try {
+                const res = await api.get('/jobs');
+                setActiveJobs(res.data);
+            } catch (err) {
+                console.error("Ledger sync failed", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        if (user) fetchDeepLedger();
+    }, [user]);
 
     return (
         <div className="min-h-screen bg-primary-bg text-text-main">
@@ -83,7 +104,10 @@ const Dashboard = () => {
                     <div className="md:col-span-8 lg:col-span-9 space-y-6">
                         {/* Quick Actions */}
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <button className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group">
+                            <button
+                                onClick={() => navigate('/jobs/create')}
+                                className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                            >
                                 <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                                 </div>
@@ -91,7 +115,10 @@ const Dashboard = () => {
                                 <div className="text-[10px] text-text-muted">Create request</div>
                             </button>
 
-                            <button className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group">
+                            <button
+                                onClick={() => navigate('/marketplace')}
+                                className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                            >
                                 <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                 </div>
@@ -118,12 +145,63 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="p-12 text-center text-text-muted">
-                                <div className="w-16 h-16 bg-primary-bg border border-border rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <svg className="w-6 h-6 text-border" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                                </div>
-                                <p className="text-sm">No active entries found in the ledger.</p>
-                                <p className="text-xs mt-1 text-text-muted/70">Transactions and contracts will appear here automatically.</p>
+                            <div className="min-h-[200px]">
+                                {loading ? (
+                                    <div className="flex justify-center py-10">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-gold"></div>
+                                    </div>
+                                ) : activeJobs.length === 0 ? (
+                                    <div className="p-12 text-center text-text-muted">
+                                        <div className="w-16 h-16 bg-primary-bg border border-border rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <svg className="w-6 h-6 text-border" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                        </div>
+                                        <p className="text-sm">No active entries found in the ledger.</p>
+                                        <p className="text-xs mt-1 text-text-muted/70">Transactions and contracts will appear here automatically.</p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead className="bg-primary-bg/50 text-[10px] uppercase tracking-wider text-text-muted border-b border-border">
+                                                <tr>
+                                                    <th className="px-6 py-4 font-medium">Engagement</th>
+                                                    <th className="px-6 py-4 font-medium">Category</th>
+                                                    <th className="px-6 py-4 font-medium">Status</th>
+                                                    <th className="px-6 py-4 font-medium text-right">Value</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-border/50">
+                                                {activeJobs.map((job) => (
+                                                    <tr key={job._id} className="hover:bg-white/5 transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-medium text-text-main text-sm">{job.title}</div>
+                                                            <div className="text-[10px] text-text-muted">{new Date(job.createdAt).toLocaleDateString()}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className="px-2 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-accent-gold">
+                                                                {job.category}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium border ${job.status === 'Open' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                                    job.status === 'Contracted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                        'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                                }`}>
+                                                                <span className={`w-1.5 h-1.5 rounded-full ${job.status === 'Open' ? 'bg-green-400' :
+                                                                        job.status === 'Contracted' ? 'bg-blue-400' :
+                                                                            'bg-gray-400'
+                                                                    }`}></span>
+                                                                {job.status}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right font-mono text-sm text-text-main">
+                                                            ${job.budget?.toLocaleString()}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
