@@ -66,6 +66,16 @@ const JobDetails = () => {
         }
     };
 
+    const handleAcceptBid = async (bidId) => {
+        try {
+            await api.patch(`/bids/${bidId}/accept`);
+            fetchJobDetails(); 
+            fetchBids(); 
+        } catch (err) {
+            setError('Failed to accept proposal.');
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-primary-bg flex items-center justify-center">
@@ -137,13 +147,28 @@ const JobDetails = () => {
                                 ) : (
                                     <div className="space-y-4">
                                         {bids.map((bid) => (
-                                            <div key={bid._id} className="bg-primary-bg/30 border border-border p-4 rounded-lg">
+                                            <div key={bid._id} className={`bg-primary-bg/30 border border-border p-4 rounded-lg relative ${bid.status === 'Accepted' ? 'border-accent-gold/50 bg-accent-gold/5' : ''}`}>
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div>
-                                                        <div className="font-semibold text-text-main">{bid.provider?.name}</div>
+                                                        <div className="font-semibold text-text-main flex items-center gap-2">
+                                                            {bid.provider?.name}
+                                                            {bid.status === 'Accepted' && (
+                                                                <span className="text-[10px] bg-accent-gold text-primary-bg px-2 py-0.5 rounded font-bold uppercase tracking-wider">Accepted</span>
+                                                            )}
+                                                        </div>
                                                         <div className="text-[10px] text-text-muted">{new Date(bid.createdAt).toLocaleDateString()}</div>
                                                     </div>
-                                                    <div className="font-mono text-accent-gold">${bid.amount?.toLocaleString()}</div>
+                                                    <div className="text-right">
+                                                        <div className="font-mono text-accent-gold">${bid.amount?.toLocaleString()}</div>
+                                                        {job.status === 'Open' && (
+                                                            <button
+                                                                onClick={() => handleAcceptBid(bid._id)}
+                                                                className="mt-2 text-[10px] uppercase tracking-wider font-bold text-primary-bg bg-text-muted hover:bg-accent-gold px-3 py-1 rounded transition-colors"
+                                                            >
+                                                                Accept
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <p className="text-sm text-text-muted mt-2">{bid.proposal}</p>
                                             </div>
@@ -156,7 +181,7 @@ const JobDetails = () => {
 
                     {/* Sidebar / Action Area */}
                     <div className="lg:col-span-1">
-                        {user?.role === 'Provider' && (
+                        {user?.role === 'Provider' && job.status === 'Open' && (
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24">
                                 <h3 className="font-serif text-lg text-text-main mb-4">Submit Proposal</h3>
                                 {error && (
@@ -200,6 +225,13 @@ const JobDetails = () => {
                                         Submit Bid
                                     </button>
                                 </form>
+                            </div>
+                        )}
+
+                        {user?.role === 'Provider' && job.status === 'Contracted' && (
+                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
+                                <h3 className="font-serif text-lg text-text-main mb-2">Position Filled</h3>
+                                <p className="text-text-muted text-sm">This engagement has been contracted.</p>
                             </div>
                         )}
 
