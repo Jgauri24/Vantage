@@ -26,64 +26,62 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 bg-primary-bg">
+        <div className="min-h-screen flex items-center justify-center px-4 bg-primary-bg bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary-bg to-primary-bg">
             <div className="w-full max-w-[400px]">
-                <div className="text-center mb-12">
-                    <h1 className="font-serif text-5xl text-black mb-2 tracking-tighter">VANTAGE</h1>
-                    <div className="h-1 w-12 bg-accent-red mx-auto"></div>
+                <div className="text-center mb-10">
+                    <p className="text-accent-gold text-xs uppercase tracking-[0.2em] mb-2 font-medium">Professional Services</p>
+                    <h1 className="font-serif text-5xl text-text-main tracking-tight mb-6">Vantage</h1>
                 </div>
 
-                <div className="bg-white p-8">
-                    <h2 className="font-sans text-xl font-semibold text-black mb-8 uppercase tracking-widest text-center">Authentication</h2>
+                <div className="bg-secondary-bg/50 backdrop-blur-xl border border-border p-8 rounded-2xl shadow-2xl">
+                    <h2 className="font-sans text-sm font-semibold text-text-main mb-6 uppercase tracking-widest text-center border-b border-border pb-4">
+                        Executive Login
+                    </h2>
 
                     {error && (
-                        <div className="bg-red-50 text-accent-red px-4 py-3 mb-6 text-sm border-l-2 border-accent-red">
+                        <div className="bg-red-500/10 text-red-400 px-4 py-3 mb-6 text-sm border border-red-500/20 rounded-lg text-center">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="relative group">
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="space-y-1">
+                            <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Email</label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-transparent border-b border-gray-300 py-3 text-black focus:outline-none focus:border-accent-red transition-colors placeholder-transparent peer"
-                                placeholder="Email"
+                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600"
+                                placeholder="name@company.com"
                                 required
                             />
-                            <label className="absolute left-0 top-3 text-text-muted text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-accent-red peer-not-placeholder-shown:-top-3 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-text-muted cursor-text">
-                                Email Address
-                            </label>
                         </div>
 
-                        <div className="relative group">
+                        <div className="space-y-1">
+                            <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Password</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-transparent border-b border-gray-300 py-3 text-black focus:outline-none focus:border-accent-red transition-colors placeholder-transparent peer"
-                                placeholder="Password"
+                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600"
+                                placeholder="••••••••"
                                 required
                             />
-                            <label className="absolute left-0 top-3 text-text-muted text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-accent-red peer-not-placeholder-shown:-top-3 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-text-muted cursor-text">
-                                Password
-                            </label>
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-black text-white py-4 font-medium uppercase tracking-widest text-xs hover:bg-accent-red transition-all duration-300 disabled:opacity-50 mt-8"
+                            className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3.5 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300 disabled:opacity-50 mt-2"
                         >
-                            {loading ? 'Processing...' : 'Enter Vantage'}
+                            {loading ? 'Authenticating...' : 'Access Terminal'}
                         </button>
                     </form>
 
-                    <p className="mt-10 text-center text-text-muted text-xs uppercase tracking-wide">
-                        New to Vantage?{' '}
-                        <Link to="/register" className="text-black hover:text-accent-red font-bold transition-colors">
-                            Request Access
+                    <p className="mt-8 text-center text-text-muted text-xs">
+                        Not part of the network?{' '}
+                        <Link to="/register" className="text-accent-gold hover:text-white transition-colors font-medium">
+                            Apply for Access
                         </Link>
                     </p>
                 </div>

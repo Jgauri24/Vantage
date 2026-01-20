@@ -35,128 +35,119 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 bg-primary-bg py-12">
-            <div className="w-full max-w-[450px]">
-                <div className="text-center mb-12">
-                    <h1 className="font-serif text-5xl text-black mb-2 tracking-tighter">VANTAGE</h1>
-                    <div className="h-1 w-12 bg-accent-red mx-auto"></div>
+        <div className="min-h-screen flex items-center justify-center px-4 bg-primary-bg bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary-bg to-primary-bg py-12">
+            <div className="w-full max-w-[480px]">
+                <div className="text-center mb-10">
+                    <p className="text-accent-gold text-xs uppercase tracking-[0.2em] mb-2 font-medium">Join the Network</p>
+                    <h1 className="font-serif text-4xl text-text-main tracking-tight">Vantge Membership</h1>
                 </div>
 
-                <div className="bg-white p-8">
-                    <h2 className="font-sans text-xl font-semibold text-black mb-8 uppercase tracking-widest text-center">Member Registration</h2>
-
+                <div className="bg-secondary-bg/50 backdrop-blur-xl border border-border p-8 rounded-2xl shadow-2xl">
                     {error && (
-                        <div className="bg-red-50 text-accent-red px-4 py-3 mb-6 text-sm border-l-2 border-accent-red">
+                        <div className="bg-red-500/10 text-red-400 px-4 py-3 mb-6 text-sm border border-red-500/20 rounded-lg text-center">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="relative group">
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                className="w-full bg-transparent border-b border-gray-300 py-3 text-black focus:outline-none focus:border-accent-red transition-colors placeholder-transparent peer"
-                                placeholder="Full Name"
-                                required
-                            />
-                            <label className="absolute left-0 top-3 text-text-muted text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-accent-red peer-not-placeholder-shown:-top-3 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-text-muted cursor-text">
-                                Full Name
-                            </label>
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                                <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all"
+                                    placeholder="John Doe"
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Company</label>
+                                <input
+                                    type="text"
+                                    name="company"
+                                    value={formData.company}
+                                    onChange={handleChange}
+                                    className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all"
+                                    placeholder="Inc."
+                                />
+                            </div>
                         </div>
 
-                        <div className="relative group">
+                        <div className="space-y-1">
+                            <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Email Address</label>
                             <input
                                 type="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                className="w-full bg-transparent border-b border-gray-300 py-3 text-black focus:outline-none focus:border-accent-red transition-colors placeholder-transparent peer"
-                                placeholder="Email"
+                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all"
+                                placeholder="name@company.com"
                                 required
                             />
-                            <label className="absolute left-0 top-3 text-text-muted text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-accent-red peer-not-placeholder-shown:-top-3 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-text-muted cursor-text">
-                                Email Address
-                            </label>
                         </div>
 
-                        <div className="relative group">
+                        <div className="space-y-1">
+                            <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Password</label>
                             <input
                                 type="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                className="w-full bg-transparent border-b border-gray-300 py-3 text-black focus:outline-none focus:border-accent-red transition-colors placeholder-transparent peer"
-                                placeholder="Password"
+                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all"
+                                placeholder="Make it strong"
                                 required
                                 minLength={6}
                             />
-                            <label className="absolute left-0 top-3 text-text-muted text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-accent-red peer-not-placeholder-shown:-top-3 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-text-muted cursor-text">
-                                Password
-                            </label>
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs uppercase tracking-wide text-text-muted block">Account Type</label>
-                            <div className="flex gap-4">
-                                <label className="flex-1 cursor-pointer">
+                        <div className="pt-2">
+                            <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1 block mb-2">I am joining as a</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <label className="cursor-pointer relative">
                                     <input
                                         type="radio"
                                         name="role"
                                         value="Client"
                                         checked={formData.role === 'Client'}
                                         onChange={handleChange}
-                                        className="sr-only"
+                                        className="sr-only peer"
                                     />
-                                    <div className={`text-center py-3 border transition-colors ${formData.role === 'Client' ? 'border-black bg-black text-white' : 'border-gray-200 text-text-muted hover:border-gray-400'}`}>
+                                    <div className="text-center py-3 rounded-lg border border-border bg-primary-bg/30 text-text-muted peer-checked:bg-accent-gold peer-checked:text-primary-bg peer-checked:border-accent-gold peer-checked:font-bold transition-all hover:bg-primary-bg/50">
                                         CLIENT
                                     </div>
                                 </label>
-                                <label className="flex-1 cursor-pointer">
+                                <label className="cursor-pointer relative">
                                     <input
                                         type="radio"
                                         name="role"
                                         value="Provider"
                                         checked={formData.role === 'Provider'}
                                         onChange={handleChange}
-                                        className="sr-only"
+                                        className="sr-only peer"
                                     />
-                                    <div className={`text-center py-3 border transition-colors ${formData.role === 'Provider' ? 'border-black bg-black text-white' : 'border-gray-200 text-text-muted hover:border-gray-400'}`}>
+                                    <div className="text-center py-3 rounded-lg border border-border bg-primary-bg/30 text-text-muted peer-checked:bg-accent-gold peer-checked:text-primary-bg peer-checked:border-accent-gold peer-checked:font-bold transition-all hover:bg-primary-bg/50">
                                         PROVIDER
                                     </div>
                                 </label>
                             </div>
                         </div>
 
-                        <div className="relative group">
-                            <input
-                                type="text"
-                                name="company"
-                                value={formData.company}
-                                onChange={handleChange}
-                                className="w-full bg-transparent border-b border-gray-300 py-3 text-black focus:outline-none focus:border-accent-red transition-colors placeholder-transparent peer"
-                                placeholder="Company"
-                            />
-                            <label className="absolute left-0 top-3 text-text-muted text-sm transition-all peer-focus:-top-3 peer-focus:text-xs peer-focus:text-accent-red peer-not-placeholder-shown:-top-3 peer-not-placeholder-shown:text-xs peer-not-placeholder-shown:text-text-muted cursor-text">
-                                Company (Optional)
-                            </label>
-                        </div>
-
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-black text-white py-4 font-medium uppercase tracking-widest text-xs hover:bg-accent-red transition-all duration-300 disabled:opacity-50 mt-8"
+                            className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3.5 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300 disabled:opacity-50 mt-4"
                         >
-                            {loading ? 'Creating Profile...' : 'Create Profile'}
+                            {loading ? 'Processing...' : 'Initialize Membership'}
                         </button>
                     </form>
 
-                    <p className="mt-10 text-center text-text-muted text-xs uppercase tracking-wide">
-                        Already a member?{' '}
-                        <Link to="/login" className="text-black hover:text-accent-red font-bold transition-colors">
-                            Access Account
+                    <p className="mt-8 text-center text-text-muted text-xs">
+                        Already authorized?{' '}
+                        <Link to="/login" className="text-accent-gold hover:text-white transition-colors font-medium">
+                            Access Terminal
                         </Link>
                     </p>
                 </div>

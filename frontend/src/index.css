@@ -2,13 +2,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
 
 @theme {
-  --color-primary-bg: #FFFFFF;
-  --color-secondary-bg: #F8F9FA;
-  --color-text-main: #111111;
-  --color-text-muted: #666666;
-  --color-accent-red: #E31C25;
-  --color-border: #E5E5E5;
-  --color-black: #000000;
+  --color-primary-bg: #0F172A; /* Slate 900 */
+  --color-secondary-bg: #1E293B; /* Slate 800 */
+  --color-text-main: #F1F5F9; /* Slate 100 */
+  --color-text-muted: #94A3B8; /* Slate 400 */
+  --color-accent-gold: #D4AF37; /* Antique Gold */
+  --color-accent-gold-hover: #B4942E;
+  --color-border: #334155; /* Slate 700 */
+  --color-success: #10B981; /* Emerald 500 */
   
   --font-family-serif: 'Playfair Display', serif;
   --font-family-mono: 'JetBrains Mono', monospace;
