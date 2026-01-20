@@ -171,7 +171,11 @@ const Dashboard = () => {
                                             </thead>
                                             <tbody className="divide-y divide-border/50">
                                                 {activeJobs.map((job) => (
-                                                    <tr key={job._id} className="hover:bg-white/5 transition-colors">
+                                                    <tr
+                                                        key={job._id}
+                                                        onClick={() => navigate(`/jobs/${job._id}`)}
+                                                        className="hover:bg-white/5 transition-colors cursor-pointer"
+                                                    >
                                                         <td className="px-6 py-4">
                                                             <div className="font-medium text-text-main text-sm">{job.title}</div>
                                                             <div className="text-[10px] text-text-muted">{new Date(job.createdAt).toLocaleDateString()}</div>
@@ -183,12 +187,12 @@ const Dashboard = () => {
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium border ${job.status === 'Open' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                                                    job.status === 'Contracted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                                        'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                                job.status === 'Contracted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                    'bg-gray-500/10 text-gray-400 border-gray-500/20'
                                                                 }`}>
                                                                 <span className={`w-1.5 h-1.5 rounded-full ${job.status === 'Open' ? 'bg-green-400' :
-                                                                        job.status === 'Contracted' ? 'bg-blue-400' :
-                                                                            'bg-gray-400'
+                                                                    job.status === 'Contracted' ? 'bg-blue-400' :
+                                                                        'bg-gray-400'
                                                                     }`}></span>
                                                                 {job.status}
                                                             </span>

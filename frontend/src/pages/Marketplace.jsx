@@ -58,8 +58,8 @@ const Marketplace = () => {
                                 key={cat}
                                 onClick={() => setFilter(cat)}
                                 className={`px-4 py-2 rounded text-xs uppercase tracking-wider transition-all ${filter === cat
-                                        ? 'bg-accent-gold text-primary-bg font-bold shadow-lg'
-                                        : 'text-text-muted hover:text-text-main hover:bg-white/5'
+                                    ? 'bg-accent-gold text-primary-bg font-bold shadow-lg'
+                                    : 'text-text-muted hover:text-text-main hover:bg-white/5'
                                     }`}
                             >
                                 {cat}
@@ -113,7 +113,10 @@ const Marketplace = () => {
                                     </div>
                                 </div>
 
-                                <button className="w-full mt-4 bg-primary-bg/50 hover:bg-accent-gold hover:text-primary-bg border border-border hover:border-accent-gold text-text-main py-2 rounded-lg text-xs uppercase tracking-widest font-bold transition-all">
+                                <button
+                                    onClick={() => navigate(`/jobs/${job._id}`)}
+                                    className="w-full mt-4 bg-primary-bg/50 hover:bg-accent-gold hover:text-primary-bg border border-border hover:border-accent-gold text-text-main py-2 rounded-lg text-xs uppercase tracking-widest font-bold transition-all"
+                                >
                                     View Details
                                 </button>
                             </div>

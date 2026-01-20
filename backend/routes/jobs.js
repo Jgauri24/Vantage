@@ -68,6 +68,33 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 
+router.get('/:id/bids', authenticate, async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+    if (!job) return res.status(404).json({ error: 'Job not found' });
+
+    // Authorization: Only the client who posted the job can view bids
+    if (req.user.role === 'Client' && job.client.toString() !== req.user.id) {
+        return res.status(403).json({ error: 'Access denied' });
+    }
+    // Providers shouldn't see other bids usually, or maybe they can? For now, let's restrict to Client.
+    // Actually, let's allow Providers to see bids if we want a transparent marketplace, but usually it's hidden.
+    // Let's stick to Client only for now as per plan.
+    
+    if (req.user.role === 'Provider') {
+         return res.status(403).json({ error: 'Access denied. Only the job poster can view bids.' });
+    }
+
+    const bids = await Bid.find({ job: req.params.id })
+      .populate('provider', 'name email')
+      .sort({ amount: 1 }); // Lowest bid first
+
+    res.json(bids);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 router.post('/:id/bids', authenticate, authorizeRole('Provider'), async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);

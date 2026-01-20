@@ -6,6 +6,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CreateJob from './pages/CreateJob';
 import Marketplace from './pages/Marketplace';
+import JobDetails from './pages/JobDetails';
 
 function App() {
   return (
@@ -36,7 +37,15 @@ function App() {
               <ProtectedRoute>
                 <Marketplace />
               </ProtectedRoute>
-            }/>
+            } />
+          <Route
+            path="/jobs/:id"
+            element={
+              <ProtectedRoute>
+                <JobDetails />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
       </BrowserRouter>
