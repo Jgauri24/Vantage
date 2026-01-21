@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import CreateJob from './pages/CreateJob';
 import Marketplace from './pages/Marketplace';
 import JobDetails from './pages/JobDetails';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -43,6 +44,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <JobDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />

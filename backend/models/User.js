@@ -24,9 +24,23 @@ const userSchema = new mongoose.Schema({
     enum: ['Client', 'Provider', 'Admin'],
     required: true
   },
+  bio: {
+    type: String,
+    default: ''
+  },
+  skills: [{
+    type: String
+  }],
+  hourlyRate: {
+    type: Number
+  },
   company: {
     type: String,
     trim: true
+  },
+  location: {
+    type: String,
+    default: 'Remote'
   },
   createdAt: {
     type: Date,

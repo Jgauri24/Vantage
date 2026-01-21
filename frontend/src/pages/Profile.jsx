@@ -1,0 +1,257 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+
+const Profile = () => {
+    const { user, login } = useAuth(); // We might need to update the user in context after edit
+    const navigate = useNavigate();
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [profileData, setProfileData] = useState({
+        name: '',
+        email: '',
+        company: '',
+        bio: '',
+        skills: '', // Comma separated for input
+        hourlyRate: '',
+        location: ''
+    });
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        try {
+            const res = await api.get('/users/me');
+            setProfileData({
+                name: res.data.name || '',
+                email: res.data.email || '',
+                company: res.data.company || '',
+                bio: res.data.bio || '',
+                skills: res.data.skills ? res.data.skills.join(', ') : '',
+                hourlyRate: res.data.hourlyRate || '',
+                location: res.data.location || ''
+            });
+        } catch (err) {
+            console.error("Failed to fetch profile", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        try {
+            const updates = {
+                name: profileData.name,
+                company: profileData.company,
+                bio: profileData.bio,
+                location: profileData.location,
+                skills: profileData.skills.split(',').map(s => s.trim()).filter(s => s),
+                hourlyRate: profileData.hourlyRate
+            };
+
+            const res = await api.patch('/users/profile', updates);
+            // Optionally update global auth context here if we had a method for it
+            setIsEditing(false);
+            fetchProfile(); // Re-fetch to normalize data
+        } catch (err) {
+            console.error("Failed to update profile", err);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-primary-bg flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-gold"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-primary-bg text-text-main">
+            <header className="bg-secondary-bg/80 backdrop-blur-md border-b border-border sticky top-0 z-20">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/dashboard')}>
+                        <div className="w-8 h-8 rounded bg-gradient-to-br from-accent-gold to-yellow-700 flex items-center justify-center text-primary-bg font-serif font-bold text-xl">V</div>
+                        <span className="font-serif text-lg tracking-tight text-text-main">Vantage</span>
+                    </div>
+                    <button onClick={() => navigate('/dashboard')} className="text-text-muted hover:text-accent-gold text-xs uppercase tracking-wider transition-colors">Return to Dashboard</button>
+                </div>
+            </header>
+
+            <main className="max-w-4xl mx-auto px-6 py-12">
+                <div className="flex justify-between items-end mb-8">
+                    <div>
+                        <h1 className="font-serif text-4xl text-text-main mb-2">My Profile</h1>
+                        <p className="text-text-muted">Manage your professional identity.</p>
+                    </div>
+                    {!isEditing && (
+                        <button
+                            onClick={() => setIsEditing(true)}
+                            className="bg-accent-gold text-primary-bg px-6 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-yellow-500 transition-colors"
+                        >
+                            Edit Profile
+                        </button>
+                    )}
+                </div>
+
+                <div className="bg-secondary-bg border border-border rounded-xl p-8 shadow-xl">
+                    {isEditing ? (
+                        <form onSubmit={handleSave} className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={profileData.name}
+                                        onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                                        className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Email</label>
+                                    <input
+                                        type="email"
+                                        value={profileData.email}
+                                        disabled
+                                        className="w-full bg-primary-bg/50 border border-border rounded px-4 py-3 text-text-muted cursor-not-allowed"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Location</label>
+                                    <input
+                                        type="text"
+                                        value={profileData.location}
+                                        onChange={(e) => setProfileData({ ...profileData, location: e.target.value })}
+                                        className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                        placeholder="e.g. New York, NY"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Company / Organization</label>
+                                    <input
+                                        type="text"
+                                        value={profileData.company}
+                                        onChange={(e) => setProfileData({ ...profileData, company: e.target.value })}
+                                        className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Professional Bio</label>
+                                <textarea
+                                    rows="4"
+                                    value={profileData.bio}
+                                    onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
+                                    className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                    placeholder="Tell us about your expertise..."
+                                />
+                            </div>
+
+                            {user?.role === 'Provider' && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Skills (Comma separated)</label>
+                                        <input
+                                            type="text"
+                                            value={profileData.skills}
+                                            onChange={(e) => setProfileData({ ...profileData, skills: e.target.value })}
+                                            className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                            placeholder="e.g. JavaScript, Legal Contract Review, Audit"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Hourly Rate ($)</label>
+                                        <input
+                                            type="number"
+                                            value={profileData.hourlyRate}
+                                            onChange={(e) => setProfileData({ ...profileData, hourlyRate: e.target.value })}
+                                            className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(false)}
+                                    className="px-6 py-2 rounded-lg border border-border text-text-muted hover:text-text-main text-xs uppercase tracking-wider font-bold transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="px-6 py-2 rounded-lg bg-accent-gold text-primary-bg text-xs uppercase tracking-wider font-bold hover:bg-yellow-500 transition-colors"
+                                >
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <div className="space-y-8">
+                            <div className="flex items-start gap-6">
+                                <div className="w-24 h-24 rounded-full bg-primary-bg border-2 border-accent-gold flex items-center justify-center text-3xl font-serif text-text-main">
+                                    {profileData.name.charAt(0)}
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-serif text-text-main">{profileData.name}</h2>
+                                    <div className="text-accent-gold text-sm font-medium mb-1">{user?.role}</div>
+                                    <div className="text-text-muted text-sm flex items-center gap-4">
+                                        {profileData.location && (
+                                            <span className="flex items-center gap-1">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                                {profileData.location}
+                                            </span>
+                                        )}
+                                        {profileData.company && (
+                                            <span className="flex items-center gap-1">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                                {profileData.company}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-border pt-8">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">About</h3>
+                                <p className="text-text-main leading-relaxed whitespace-pre-wrap">
+                                    {profileData.bio || "No bio provided."}
+                                </p>
+                            </div>
+
+                            {user?.role === 'Provider' && (
+                                <div className="border-t border-border pt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">Skills</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {profileData.skills ? profileData.skills.split(',').map(s => (
+                                                <span key={s} className="px-3 py-1 bg-primary-bg border border-border rounded-full text-xs text-text-main">
+                                                    {s.trim()}
+                                                </span>
+                                            )) : <span className="text-text-muted italic text-sm">No skills listed</span>}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">Rate</h3>
+                                        <div className="text-2xl font-mono text-accent-gold">
+                                            {profileData.hourlyRate ? `$${profileData.hourlyRate}/hr` : 'Not set'}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </main>
+        </div>
+    );
+};
+
+export default Profile;

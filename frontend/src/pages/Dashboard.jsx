@@ -88,6 +88,12 @@ const Dashboard = () => {
                                     </div>
                                 )}
                             </div>
+                            <button
+                                onClick={() => navigate('/profile')}
+                                className="w-full mt-4 text-[10px] uppercase tracking-wider font-bold text-accent-gold border border-accent-gold/30 hover:bg-accent-gold hover:text-primary-bg py-2 rounded transition-all duration-300"
+                            >
+                                Manage Identity
+                            </button>
                         </div>
 
                         <div className="bg-gradient-to-br from-accent-gold to-yellow-700 rounded-xl p-5 text-primary-bg shadow-lg">
