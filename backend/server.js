@@ -29,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api/users', userRoutes);
+app.use('/uploads', express.static('uploads'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Vantage API is running' });

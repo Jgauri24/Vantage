@@ -38,8 +38,19 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
+    const refreshUser = async () => {
+        try {
+            const res = await api.get('/users/me');
+            localStorage.setItem('vantage_user', JSON.stringify(res.data));
+            setUser(res.data);
+            return res.data;
+        } catch (error) {
+            console.error("Failed to refresh user data", error);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

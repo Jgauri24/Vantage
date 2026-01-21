@@ -6,7 +6,7 @@ import api from '../utils/api';
 const JobDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
 
     const [job, setJob] = useState(null);
     const [bids, setBids] = useState([]);
@@ -95,9 +95,27 @@ const JobDetails = () => {
         }
     };
 
-    const handleSubmitWork = async () => {
+    const [workFile, setWorkFile] = useState(null);
+
+    // ... (existing code)
+
+    const handleSubmitWork = async (e) => {
+        e.preventDefault(); // Prevent default if called from form
+
+        if (!workFile) {
+            setError('Please select a file to upload.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('workFile', workFile);
+
         try {
-            await api.patch(`/jobs/${id}/submit`);
+            await api.patch(`/jobs/${id}/submit`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             setSuccessMsg('Work submitted for review.');
             fetchJobDetails();
         } catch (err) {
@@ -105,10 +123,13 @@ const JobDetails = () => {
         }
     };
 
+    // ... (existing code)
+
     const handleApproveWork = async () => {
         try {
             await api.patch(`/jobs/${id}/complete`);
             setSuccessMsg('Work approved. Payment released.');
+            await refreshUser();
             fetchJobDetails();
         } catch (err) {
             setError('Failed to approve work.');
@@ -273,6 +294,17 @@ const JobDetails = () => {
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
                                 <h3 className="font-serif text-lg text-text-main mb-2">Active Contract</h3>
                                 <p className="text-text-muted text-sm mb-4">You are contracted for this engagement.</p>
+
+                                <div className="mb-4 text-left">
+                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-medium mb-1 block">Upload Work (PDF/Image)</label>
+                                    <input
+                                        type="file"
+                                        accept=".pdf,image/*"
+                                        onChange={(e) => setWorkFile(e.target.files[0])}
+                                        className="w-full text-xs text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-accent-gold/10 file:text-accent-gold hover:file:bg-accent-gold/20 cursor-pointer"
+                                    />
+                                </div>
+
                                 <button
                                     onClick={handleSubmitWork}
                                     className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300"
@@ -293,6 +325,24 @@ const JobDetails = () => {
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
                                 <h3 className="font-serif text-lg text-text-main mb-2">Work Submitted</h3>
                                 <p className="text-text-muted text-sm mb-4">Provider has submitted work for approval.</p>
+
+                                {job.workSubmission && (
+                                    <div className="mb-4 bg-primary-bg/30 p-3 rounded-lg border border-border text-left">
+                                        <div className="text-[10px] uppercase text-text-muted mb-1">Submitted File</div>
+                                        <a
+                                            href={job.workSubmission.fileUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-accent-gold hover:underline text-sm font-medium flex items-center gap-2"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            {job.workSubmission.fileName || 'View Submission'}
+                                        </a>
+                                        <div className="text-[10px] text-text-muted mt-1 text-right">
+                                            {new Date(job.workSubmission.submittedAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                )}
                                 <button
                                     onClick={handleApproveWork}
                                     className="w-full bg-green-600 hover:bg-green-500 text-white py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-green-500/20 transition-all duration-300"

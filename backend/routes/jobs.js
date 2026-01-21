@@ -121,8 +121,13 @@ router.post('/:id/bids', authenticate, authorizeRole('Provider'), async (req, re
 
 
 
-// Submit work (Provider only)
-router.patch('/:id/submit', authenticate, authorizeRole('Provider'), async (req, res) => {
+const upload = require('../middleware/upload');
+const User = require('../models/User'); // Import User model
+
+// ... (other routes)
+
+// Submit work (Provider only) - now with file upload
+router.patch('/:id/submit', authenticate, authorizeRole('Provider'), upload.single('workFile'), async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Job not found' });
@@ -136,7 +141,19 @@ router.patch('/:id/submit', authenticate, authorizeRole('Provider'), async (req,
         return res.status(400).json({ error: 'Job is not in a state to be submitted.' });
     }
 
+    if (!req.file) {
+        return res.status(400).json({ error: 'Please upload a work file (PDF or Image).' });
+    }
+
+    const fullUrl = req.protocol + '://' + req.get('host') + '/uploads/' + req.file.filename;
+
     job.status = 'Reviewing';
+    job.workSubmission = {
+        fileUrl: fullUrl,
+        fileName: req.file.originalname,
+        submittedAt: Date.now()
+    };
+    
     await job.save();
 
     res.json(job);
@@ -161,6 +178,17 @@ router.patch('/:id/complete', authenticate, authorizeRole('Client'), async (req,
 
     job.status = 'Completed';
     await job.save();
+
+    // Release Payment (Credits)
+    // Find acceptance bid to get the provider
+    const acceptedBid = await Bid.findOne({ job: job._id, status: 'Accepted' });
+    if (acceptedBid) {
+        const provider = await User.findById(acceptedBid.provider);
+        if (provider) {
+            provider.walletBalance = (provider.walletBalance || 0) + job.budget;
+            await provider.save();
+        }
+    }
 
     res.json(job);
   } catch (error) {

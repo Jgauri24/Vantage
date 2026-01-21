@@ -42,6 +42,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'Remote'
   },
+  walletBalance: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now

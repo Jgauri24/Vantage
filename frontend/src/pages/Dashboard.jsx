@@ -5,14 +5,18 @@ import { useState, useEffect } from 'react';
 import api from '../utils/api';
 
 const Dashboard = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, refreshUser } = useAuth();
     const navigate = useNavigate();
     const [activeJobs, setActiveJobs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [fundingAmount, setFundingAmount] = useState('');
+    const [isFunding, setIsFunding] = useState(false);
+    const [showFundModal, setShowFundModal] = useState(false);
 
     useEffect(() => {
-        const fetchDeepLedger = async () => {
+        const fetchData = async () => {
             try {
+                await refreshUser();
                 const res = await api.get('/jobs');
                 setActiveJobs(res.data);
             } catch (err) {
@@ -21,8 +25,24 @@ const Dashboard = () => {
                 setLoading(false);
             }
         }
-        if (user) fetchDeepLedger();
-    }, [user]);
+        if (user) fetchData();
+    }, []);
+
+    const handleFundWallet = async (e) => {
+        e.preventDefault();
+        if (!fundingAmount || fundingAmount <= 0) return;
+        setIsFunding(true);
+        try {
+            await api.post('/users/fund-wallet', { amount: fundingAmount });
+            await refreshUser();
+            setShowFundModal(false);
+            setFundingAmount('');
+        } catch (err) {
+            console.error("Funding failed", err);
+        } finally {
+            setIsFunding(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-primary-bg text-text-main">
@@ -101,10 +121,61 @@ const Dashboard = () => {
                                 <h3 className="text-xs font-bold uppercase tracking-widest opacity-80">Credit Balance</h3>
                                 <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
-                            <div className="text-3xl font-serif font-bold mb-1">$0.00</div>
-                            <div className="text-xs opacity-70">Available for allocation</div>
+                            <div className="text-3xl font-serif font-bold mb-1">${user?.walletBalance?.toLocaleString() || '0.00'}</div>
+                            <div className="text-xs opacity-70 mb-4">Available for allocation</div>
+
+                            <button
+                                onClick={() => setShowFundModal(true)}
+                                className="w-full bg-primary-bg/20 hover:bg-primary-bg/40 text-primary-bg font-bold text-[10px] uppercase tracking-wider py-2 rounded border border-primary-bg/30 transition-all"
+                            >
+                                Add Funds
+                            </button>
                         </div>
                     </div>
+
+                    {/* Funding Modal */}
+                    {showFundModal && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                            <div className="bg-secondary-bg border border-border rounded-2xl w-full max-w-md p-8 shadow-2xl">
+                                <h2 className="font-serif text-2xl text-text-main mb-2">Fund Your Wallet</h2>
+                                <p className="text-text-muted text-sm mb-6">Allocate additional credits to your Vantage account for service engagements.</p>
+
+                                <form onSubmit={handleFundWallet} className="space-y-6">
+                                    <div>
+                                        <label className="text-[10px] uppercase tracking-widest text-text-muted font-bold block mb-2">Amount to Add (USD)</label>
+                                        <div className="relative">
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-serif">$</span>
+                                            <input
+                                                type="number"
+                                                value={fundingAmount}
+                                                onChange={(e) => setFundingAmount(e.target.value)}
+                                                placeholder="0.00"
+                                                className="w-full bg-primary-bg border border-border rounded-xl pl-8 pr-4 py-4 text-text-main font-serif text-xl focus:border-accent-gold focus:outline-none transition-colors"
+                                                autoFocus
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowFundModal(false)}
+                                            className="flex-1 px-6 py-3 rounded-xl border border-border text-text-muted text-xs uppercase tracking-widest font-bold hover:text-text-main transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={isFunding || !fundingAmount}
+                                            className="flex-1 px-6 py-3 rounded-xl bg-accent-gold text-primary-bg text-xs uppercase tracking-widest font-bold hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            {isFunding ? 'Processing...' : 'Confirm Deposit'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Ledger / Main Content */}
                     <div className="md:col-span-8 lg:col-span-9 space-y-6">
@@ -132,7 +203,10 @@ const Dashboard = () => {
                                 <div className="text-[10px] text-text-muted">Browse listings</div>
                             </button>
 
-                            <button className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group">
+                            <button
+                                onClick={() => navigate('/analytics')}
+                                className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                            >
                                 <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                                 </div>

@@ -34,6 +34,11 @@ const jobSchema = new mongoose.Schema({
     enum: ['Open', 'Contracted', 'In-Progress', 'Reviewing', 'Completed', 'Cancelled'],
     default: 'Open'
   },
+  workSubmission: {
+    fileUrl: String,
+    fileName: String,
+    submittedAt: Date
+  },
   createdAt: {
     type: Date,
     default: Date.now
