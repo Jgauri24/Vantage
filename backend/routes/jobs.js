@@ -176,22 +176,51 @@ router.patch('/:id/complete', authenticate, authorizeRole('Client'), async (req,
      return res.status(400).json({ error: 'Job is not ready for completion (must be in Reviewing state).' });
     }
 
-    job.status = 'Completed';
-    await job.save();
-
-    // Release Payment (Credits)
-    // Find acceptance bid to get the provider
-    const acceptedBid = await Bid.findOne({ job: job._id, status: 'Accepted' });
-    if (acceptedBid) {
-        const provider = await User.findById(acceptedBid.provider);
-        if (provider) {
-            provider.walletBalance = (provider.walletBalance || 0) + job.budget;
-            await provider.save();
-        }
+    if (!job.paymentHeld) {
+        return res.status(400).json({ error: 'No payment was held for this job.' });
     }
 
-    res.json(job);
+    // Find accepted bid to get the provider
+    const acceptedBid = await Bid.findOne({ job: job._id, status: 'Accepted' });
+    if (!acceptedBid) {
+        return res.status(400).json({ error: 'No accepted bid found for this job.' });
+    }
+
+    const provider = await User.findById(acceptedBid.provider);
+    if (!provider) {
+        return res.status(404).json({ error: 'Provider not found.' });
+    }
+
+    // Add funds to provider wallet
+    provider.walletBalance = (provider.walletBalance || 0) + job.budget;
+    await provider.save();
+
+    // Create transaction record for provider earning
+    const Transaction = require('../models/Transaction');
+    const transaction = new Transaction({
+        user: provider._id,
+        type: 'job_earning',
+        amount: job.budget,
+        balanceAfter: provider.walletBalance,
+        relatedJob: job._id,
+        status: 'completed',
+        description: `Earned from job: ${job.title}`
+    });
+    await transaction.save();
+
+    // Update job status and payment tracking
+    job.status = 'Completed';
+    job.paymentReleased = true;
+    job.transactionIds.push(transaction._id);
+    await job.save();
+
+    res.json({ 
+        job,
+        providerEarning: job.budget,
+        message: 'Job completed and payment released to provider'
+    });
   } catch (error) {
+    console.error('Job completion error:', error);
     res.status(500).json({ error: error.message });
   }
 });

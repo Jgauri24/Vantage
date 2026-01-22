@@ -39,6 +39,18 @@ const jobSchema = new mongoose.Schema({
     fileName: String,
     submittedAt: Date
   },
+  paymentHeld: {
+    type: Boolean,
+    default: false
+  },
+  paymentReleased: {
+    type: Boolean,
+    default: false
+  },
+  transactionIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  }],
   createdAt: {
     type: Date,
     default: Date.now

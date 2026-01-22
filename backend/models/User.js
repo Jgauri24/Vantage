@@ -46,6 +46,17 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  stripeCustomerId: {
+    type: String
+  },
+  savedPaymentMethods: [{
+    paymentMethodId: String,
+    last4: String,
+    brand: String,
+    expMonth: Number,
+    expYear: Number,
+    isDefault: Boolean
+  }],
   createdAt: {
     type: Date,
     default: Date.now

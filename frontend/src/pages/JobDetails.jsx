@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import WalletFundingModal from '../components/WalletFundingModal';
 
 const JobDetails = () => {
     const { id } = useParams();
@@ -16,6 +17,8 @@ const JobDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+    const [showFundingModal, setShowFundingModal] = useState(false);
+    const [requiredFunds, setRequiredFunds] = useState(0);
 
     useEffect(() => {
         fetchJobDetails();
@@ -26,19 +29,27 @@ const JobDetails = () => {
             const res = await api.get(`/jobs/${id}`);
             setJob(res.data);
 
+            const currentUserId = user?.id || user?._id;
+            const jobClientId = res.data.client?._id || res.data.client?.id;
+
+            console.log("Debug JobDetails:", {
+                userRole: user?.role,
+                currentUserId,
+                jobClientId,
+                isOwner: jobClientId === currentUserId
+            });
+
             // If Client and owner, fetch bids
-            if (user?.role === 'Client' && res.data.client?._id === user?.id) {
-                fetchBids();
-            }
-            // If Provider, fetch my bid to check status
-            if (user?.role === 'Provider') {
-                fetchMyBid();
+            if (user?.role === 'Client' && jobClientId === currentUserId) {
+                await fetchBids();
+            } else if (user?.role === 'Provider') {
+                // If Provider, fetch my bid to check status
+                await fetchMyBid();
             }
         } catch (err) {
             setError('Failed to load engagement details.');
-            setLoading(false);
         } finally {
-            if (user?.role !== 'Client') setLoading(false);
+            setLoading(false);
         }
     };
 
@@ -48,23 +59,12 @@ const JobDetails = () => {
             setBids(res.data);
         } catch (err) {
             console.error("Failed to fetch bids", err);
-        } finally {
-            setLoading(false);
         }
     };
 
     const fetchMyBid = async () => {
-        // Since we don't have a direct endpoint for "my bid", we can't easily get it unless we fetch all bids (which is restricted).
-        // For now, let's assume if the job is contracted and I can't submit a bid, I might be the one.
-        // Actually, we should probably add an endpoint for this or allow Providers to fetch their own bids.
-        // Let's cheat slightly and try to find it via a new call (or we can add a route).
-        // Better: let's try to infer it or just add the button if status is contracted. 
-        // Backend check will fail if not me.
-        // For UI: Let's assume for now. 
-        // Wait, if I am a provider, I want to see if I am the accepted one.
-        // Let's add that `myBid` logic later if needed, but for now rely on backend error if I try to submit and I'm not the one.
-        // Actually, to show the button properly, let's just show it if status is Contracted. Backend handles auth.
-        setLoading(false);
+        // Mock implementation for now as seen in previous code
+        // actual implementation would fetch from API
     };
 
     const handleBidSubmit = async (e) => {
@@ -88,10 +88,20 @@ const JobDetails = () => {
     const handleAcceptBid = async (bidId) => {
         try {
             await api.patch(`/bids/${bidId}/accept`);
+            setSuccessMsg('Proposal accepted. Payment held in escrow.');
+            await refreshUser(); // Update wallet balance
             fetchJobDetails();
             fetchBids();
         } catch (err) {
-            setError('Failed to accept proposal.');
+            console.error("Accept bid error:", err);
+            if (err.response?.status === 402 && err.response?.data?.required) {
+                // Insufficient funds
+                setRequiredFunds(err.response.data.required - (err.response.data.current || 0));
+                setShowFundingModal(true);
+                setError(`Insufficient funds. Please add $${(err.response.data.required - (err.response.data.current || 0)).toFixed(2)} to your wallet.`);
+            } else {
+                setError(err.response?.data?.error || 'Failed to accept proposal.');
+            }
         }
     };
 
@@ -224,10 +234,14 @@ const JobDetails = () => {
                                                         <div className="font-mono text-accent-gold">${bid.amount?.toLocaleString()}</div>
                                                         {job.status === 'Open' && (
                                                             <button
-                                                                onClick={() => handleAcceptBid(bid._id)}
+                                                                onClick={() => {
+                                                                    if (window.confirm(`Accepting this proposal will deduct $${job.budget} from your wallet. Proceed?`)) {
+                                                                        handleAcceptBid(bid._id);
+                                                                    }
+                                                                }}
                                                                 className="mt-2 text-[10px] uppercase tracking-wider font-bold text-primary-bg bg-text-muted hover:bg-accent-gold px-3 py-1 rounded transition-colors"
                                                             >
-                                                                Accept
+                                                                Accept & Pay
                                                             </button>
                                                         )}
                                                     </div>
@@ -243,6 +257,19 @@ const JobDetails = () => {
 
                     {/* Sidebar / Action Area */}
                     <div className="lg:col-span-1">
+                        {/* Wallet Balance Widget for Client */}
+                        {user?.role === 'Client' && job.client?._id === user?.id && (
+                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl mb-6">
+                                <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2 font-bold">Your Wallet Balance</div>
+                                <div className="text-2xl font-serif text-accent-gold mb-4">${user.walletBalance?.toFixed(2) || '0.00'}</div>
+                                <button
+                                    onClick={() => setShowFundingModal(true)}
+                                    className="w-full bg-primary-bg border border-border text-text-muted hover:text-text-main hover:border-accent-gold py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors"
+                                >
+                                    Add Funds
+                                </button>
+                            </div>
+                        )}
                         {user?.role === 'Provider' && job.status === 'Open' && (
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24">
                                 <h3 className="font-serif text-lg text-text-main mb-4">Submit Proposal</h3>
@@ -367,6 +394,17 @@ const JobDetails = () => {
                     </div>
                 </div>
             </div>
+
+            <WalletFundingModal
+                isOpen={showFundingModal}
+                onClose={() => setShowFundingModal(false)}
+                onSuccess={(newBalance) => {
+                    refreshUser();
+                    setSuccessMsg('Funds added successfully. You can now accept the proposal.');
+                    setError('');
+                }}
+                initialAmount={requiredFunds > 0 ? requiredFunds : 100}
+            />
         </div>
     );
 };

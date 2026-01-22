@@ -3,6 +3,8 @@ const router = express.Router();
 const { authenticate, authorizeRole } = require('../middleware/auth');
 const Job = require('../models/Job');
 const Bid = require('../models/Bid');
+const User = require('../models/User');
+const Transaction = require('../models/Transaction');
 
 // Accept a bid
 router.patch('/:id/accept', authenticate, authorizeRole('Client'), async (req, res) => {
@@ -22,12 +24,40 @@ router.patch('/:id/accept', authenticate, authorizeRole('Client'), async (req, r
         return res.status(400).json({ error: 'Job is not open for contracting.' });
     }
 
+    // Check wallet balance
+    const client = await User.findById(req.user.id);
+    if (!client.walletBalance || client.walletBalance < job.budget) {
+        return res.status(400).json({ 
+            error: 'Insufficient wallet balance',
+            required: job.budget,
+            current: client.walletBalance || 0
+        });
+    }
+
+    // Deduct from client wallet
+    client.walletBalance -= job.budget;
+    await client.save();
+
+    // Create transaction record for payment
+    const transaction = new Transaction({
+        user: client._id,
+        type: 'job_payment',
+        amount: -job.budget, // Negative for deduction
+        balanceAfter: client.walletBalance,
+        relatedJob: job._id,
+        status: 'completed',
+        description: `Payment for job: ${job.title}`
+    });
+    await transaction.save();
+
     // Update Bid status
     bid.status = 'Accepted';
     await bid.save();
 
-    // Update Job status
+    // Update Job status and payment tracking
     job.status = 'Contracted';
+    job.paymentHeld = true;
+    job.transactionIds.push(transaction._id);
     await job.save();
 
     // Reject other bids for this job
@@ -36,8 +66,14 @@ router.patch('/:id/accept', authenticate, authorizeRole('Client'), async (req, r
         { status: 'Rejected' }
     );
 
-    res.json({ message: 'Bid accepted and contract formed', bid, job });
+    res.json({ 
+        message: 'Bid accepted and payment processed', 
+        bid, 
+        job,
+        newWalletBalance: client.walletBalance
+    });
   } catch (error) {
+    console.error('Bid acceptance error:', error);
     res.status(500).json({ error: error.message });
   }
 });

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import WalletFundingModal from '../components/WalletFundingModal';
+import TransactionHistory from '../components/TransactionHistory';
 
 const Profile = () => {
     const { user, login } = useAuth(); // We might need to update the user in context after edit
@@ -9,6 +11,8 @@ const Profile = () => {
 
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [showFundingModal, setShowFundingModal] = useState(false);
+    const [walletBalance, setWalletBalance] = useState(0);
     const [profileData, setProfileData] = useState({
         name: '',
         email: '',
@@ -21,6 +25,7 @@ const Profile = () => {
 
     useEffect(() => {
         fetchProfile();
+        fetchWalletBalance();
     }, []);
 
     const fetchProfile = async () => {
@@ -35,11 +40,26 @@ const Profile = () => {
                 hourlyRate: res.data.hourlyRate || '',
                 location: res.data.location || ''
             });
+            setWalletBalance(res.data.walletBalance || 0);
         } catch (err) {
             console.error("Failed to fetch profile", err);
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchWalletBalance = async () => {
+        try {
+            const res = await api.get('/payments/wallet-balance');
+            setWalletBalance(res.data.walletBalance);
+        } catch (err) {
+            console.error("Failed to fetch wallet balance", err);
+        }
+    };
+
+    const handleFundingSuccess = (newBalance) => {
+        setWalletBalance(newBalance);
+        // Optionally show success message
     };
 
     const handleSave = async (e) => {
@@ -249,7 +269,41 @@ const Profile = () => {
                         </div>
                     )}
                 </div>
+
+                {/* Wallet Section */}
+                <div className="bg-secondary-bg border border-border rounded-xl p-8 shadow-xl mt-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="font-serif text-2xl text-text-main mb-1">Wallet</h2>
+                            <p className="text-text-muted text-sm">Manage your funds</p>
+                        </div>
+                        <button
+                            onClick={() => setShowFundingModal(true)}
+                            className="bg-accent-gold text-primary-bg px-6 py-2 rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-yellow-500 transition-colors"
+                        >
+                            Add Funds
+                        </button>
+                    </div>
+
+                    <div className="bg-primary-bg/50 border border-border rounded-xl p-6 mb-6">
+                        <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2 font-bold">Current Balance</div>
+                        <div className="text-4xl font-serif text-accent-gold">${walletBalance.toFixed(2)}</div>
+                    </div>
+
+                    {/* Transaction History */}
+                    <div>
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">Recent Transactions</h3>
+                        <TransactionHistory limit={10} />
+                    </div>
+                </div>
             </main>
+
+            {/* Wallet Funding Modal */}
+            <WalletFundingModal
+                isOpen={showFundingModal}
+                onClose={() => setShowFundingModal(false)}
+                onSuccess={handleFundingSuccess}
+            />
         </div>
     );
 };

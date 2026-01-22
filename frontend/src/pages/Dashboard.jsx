@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
+import WalletFundingModal from '../components/WalletFundingModal';
 
 const Dashboard = () => {
     const { user, logout, refreshUser } = useAuth();
@@ -28,20 +29,9 @@ const Dashboard = () => {
         if (user) fetchData();
     }, []);
 
-    const handleFundWallet = async (e) => {
-        e.preventDefault();
-        if (!fundingAmount || fundingAmount <= 0) return;
-        setIsFunding(true);
-        try {
-            await api.post('/users/fund-wallet', { amount: fundingAmount });
-            await refreshUser();
-            setShowFundModal(false);
-            setFundingAmount('');
-        } catch (err) {
-            console.error("Funding failed", err);
-        } finally {
-            setIsFunding(false);
-        }
+    const handleFundingSuccess = (newBalance) => {
+        refreshUser();
+        // optionally show success toast
     };
 
     return (
@@ -133,49 +123,11 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Funding Modal */}
-                    {showFundModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                            <div className="bg-secondary-bg border border-border rounded-2xl w-full max-w-md p-8 shadow-2xl">
-                                <h2 className="font-serif text-2xl text-text-main mb-2">Fund Your Wallet</h2>
-                                <p className="text-text-muted text-sm mb-6">Allocate additional credits to your Vantage account for service engagements.</p>
-
-                                <form onSubmit={handleFundWallet} className="space-y-6">
-                                    <div>
-                                        <label className="text-[10px] uppercase tracking-widest text-text-muted font-bold block mb-2">Amount to Add (USD)</label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-serif">$</span>
-                                            <input
-                                                type="number"
-                                                value={fundingAmount}
-                                                onChange={(e) => setFundingAmount(e.target.value)}
-                                                placeholder="0.00"
-                                                className="w-full bg-primary-bg border border-border rounded-xl pl-8 pr-4 py-4 text-text-main font-serif text-xl focus:border-accent-gold focus:outline-none transition-colors"
-                                                autoFocus
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowFundModal(false)}
-                                            className="flex-1 px-6 py-3 rounded-xl border border-border text-text-muted text-xs uppercase tracking-widest font-bold hover:text-text-main transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            disabled={isFunding || !fundingAmount}
-                                            className="flex-1 px-6 py-3 rounded-xl bg-accent-gold text-primary-bg text-xs uppercase tracking-widest font-bold hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                        >
-                                            {isFunding ? 'Processing...' : 'Confirm Deposit'}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
+                    <WalletFundingModal
+                        isOpen={showFundModal}
+                        onClose={() => setShowFundModal(false)}
+                        onSuccess={handleFundingSuccess}
+                    />
 
                     {/* Ledger / Main Content */}
                     <div className="md:col-span-8 lg:col-span-9 space-y-6">
