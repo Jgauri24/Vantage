@@ -6,26 +6,32 @@ import WalletFundingModal from '../components/WalletFundingModal';
 import TransactionHistory from '../components/TransactionHistory';
 
 const Profile = () => {
-    const { user, login } = useAuth(); // We might need to update the user in context after edit
+    const { user } = useAuth(); 
     const navigate = useNavigate();
 
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [showFundingModal, setShowFundingModal] = useState(false);
     const [walletBalance, setWalletBalance] = useState(0);
+    const [analytics, setAnalytics] = useState(null);
     const [profileData, setProfileData] = useState({
         name: '',
         email: '',
         company: '',
         bio: '',
-        skills: '', // Comma separated for input
+        headline: '',
+        experience: '',
+        skills: '', 
         hourlyRate: '',
-        location: ''
+        yearsOfExperience: '',
+        location: '',
+        portfolioLinks: '' 
     });
 
     useEffect(() => {
         fetchProfile();
         fetchWalletBalance();
+        fetchAnalytics();
     }, []);
 
     const fetchProfile = async () => {
@@ -36,15 +42,28 @@ const Profile = () => {
                 email: res.data.email || '',
                 company: res.data.company || '',
                 bio: res.data.bio || '',
+                headline: res.data.headline || '',
+                experience: res.data.experience || '',
                 skills: res.data.skills ? res.data.skills.join(', ') : '',
                 hourlyRate: res.data.hourlyRate || '',
-                location: res.data.location || ''
+                yearsOfExperience: res.data.yearsOfExperience || '',
+                location: res.data.location || '',
+                portfolioLinks: res.data.portfolioLinks ? res.data.portfolioLinks.join('\n') : ''
             });
             setWalletBalance(res.data.walletBalance || 0);
         } catch (err) {
             console.error("Failed to fetch profile", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAnalytics = async () => {
+        try {
+            const res = await api.get('/users/analytics');
+            setAnalytics(res.data);
+        } catch (err) {
+            console.error("Failed to fetch analytics for profile", err);
         }
     };
 
@@ -69,12 +88,19 @@ const Profile = () => {
                 name: profileData.name,
                 company: profileData.company,
                 bio: profileData.bio,
+                headline: profileData.headline,
+                experience: profileData.experience,
                 location: profileData.location,
                 skills: profileData.skills.split(',').map(s => s.trim()).filter(s => s),
-                hourlyRate: profileData.hourlyRate
+                hourlyRate: profileData.hourlyRate,
+                yearsOfExperience: profileData.yearsOfExperience || null,
+                portfolioLinks: profileData.portfolioLinks
+                    .split(/\n|,/)
+                    .map(s => s.trim())
+                    .filter(s => s)
             };
 
-            const res = await api.patch('/users/profile', updates);
+            await api.patch('/users/profile', updates);
             // Optionally update global auth context here if we had a method for it
             setIsEditing(false);
             fetchProfile(); // Re-fetch to normalize data
@@ -82,6 +108,12 @@ const Profile = () => {
             console.error("Failed to update profile", err);
         }
     };
+
+    const completed = analytics?.totalCompleted || 0;
+    const active = analytics?.activeCount || 0;
+    const monetary = analytics?.monetaryValue || 0;
+    const totalEngagements = completed + active;
+    const completionRate = totalEngagements > 0 ? Math.round((completed / totalEngagements) * 100) : 0;
 
     if (loading) {
         return (
@@ -160,6 +192,18 @@ const Profile = () => {
                                         className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
                                     />
                                 </div>
+                                {user?.role === 'Provider' && (
+                                    <div>
+                                        <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Professional Headline</label>
+                                        <input
+                                            type="text"
+                                            value={profileData.headline}
+                                            onChange={(e) => setProfileData({ ...profileData, headline: e.target.value })}
+                                            className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                            placeholder="e.g. Senior Corporate Lawyer • 8+ yrs"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -174,27 +218,60 @@ const Profile = () => {
                             </div>
 
                             {user?.role === 'Provider' && (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Skills (Comma separated)</label>
+                                            <input
+                                                type="text"
+                                                value={profileData.skills}
+                                                onChange={(e) => setProfileData({ ...profileData, skills: e.target.value })}
+                                                className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                                placeholder="e.g. Contract Drafting, IP Strategy, M&A Diligence"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Hourly Rate ($)</label>
+                                            <input
+                                                type="number"
+                                                value={profileData.hourlyRate}
+                                                onChange={(e) => setProfileData({ ...profileData, hourlyRate: e.target.value })}
+                                                className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Years of Experience</label>
+                                            <input
+                                                type="number"
+                                                value={profileData.yearsOfExperience}
+                                                onChange={(e) => setProfileData({ ...profileData, yearsOfExperience: e.target.value })}
+                                                className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                            />
+                                        </div>
+                                    </div>
+
                                     <div>
-                                        <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Skills (Comma separated)</label>
-                                        <input
-                                            type="text"
-                                            value={profileData.skills}
-                                            onChange={(e) => setProfileData({ ...profileData, skills: e.target.value })}
+                                        <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Experience Summary</label>
+                                        <textarea
+                                            rows="3"
+                                            value={profileData.experience}
+                                            onChange={(e) => setProfileData({ ...profileData, experience: e.target.value })}
                                             className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
-                                            placeholder="e.g. JavaScript, Legal Contract Review, Audit"
+                                            placeholder="Highlight key roles, industries and notable matters..."
                                         />
                                     </div>
+
                                     <div>
-                                        <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Hourly Rate ($)</label>
-                                        <input
-                                            type="number"
-                                            value={profileData.hourlyRate}
-                                            onChange={(e) => setProfileData({ ...profileData, hourlyRate: e.target.value })}
+                                        <label className="text-[10px] uppercase tracking-wider text-text-muted font-bold block mb-2">Portfolio Links</label>
+                                        <textarea
+                                            rows="3"
+                                            value={profileData.portfolioLinks}
+                                            onChange={(e) => setProfileData({ ...profileData, portfolioLinks: e.target.value })}
                                             className="w-full bg-primary-bg border border-border rounded px-4 py-3 text-text-main focus:border-accent-gold focus:outline-none"
+                                            placeholder="One URL per line (e.g. case study, website, GitHub, Notion, PDF, etc.)"
                                         />
                                     </div>
-                                </div>
+                                </>
                             )}
 
                             <div className="flex gap-4 pt-4">
@@ -215,26 +292,77 @@ const Profile = () => {
                         </form>
                     ) : (
                         <div className="space-y-8">
-                            <div className="flex items-start gap-6">
-                                <div className="w-24 h-24 rounded-full bg-primary-bg border-2 border-accent-gold flex items-center justify-center text-3xl font-serif text-text-main">
-                                    {profileData.name.charAt(0)}
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                                <div className="flex items-start gap-6">
+                                    <div className="w-24 h-24 rounded-full bg-primary-bg border-2 border-accent-gold flex items-center justify-center text-3xl font-serif text-text-main">
+                                        {profileData.name.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-serif text-text-main">{profileData.name}</h2>
+                                        <div className="inline-flex items-center gap-2 mb-2">
+                                            <span className="px-2 py-0.5 rounded-full bg-accent-gold/10 border border-accent-gold/40 text-[10px] font-semibold uppercase tracking-widest text-accent-gold">
+                                                {user?.role}
+                                            </span>
+                                            {user?.role === 'Provider' && profileData.hourlyRate && (
+                                                <span className="text-xs text-text-muted">
+                                                    ${profileData.hourlyRate}/hr
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="text-text-muted text-sm flex flex-wrap items-center gap-4">
+                                            {profileData.location && (
+                                                <span className="flex items-center gap-1">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    </svg>
+                                                    {profileData.location}
+                                                </span>
+                                            )}
+                                            {profileData.company && (
+                                                <span className="flex items-center gap-1">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                                    </svg>
+                                                    {profileData.company}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 className="text-2xl font-serif text-text-main">{profileData.name}</h2>
-                                    <div className="text-accent-gold text-sm font-medium mb-1">{user?.role}</div>
-                                    <div className="text-text-muted text-sm flex items-center gap-4">
-                                        {profileData.location && (
-                                            <span className="flex items-center gap-1">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                                {profileData.location}
-                                            </span>
-                                        )}
-                                        {profileData.company && (
-                                            <span className="flex items-center gap-1">
-                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-                                                {profileData.company}
-                                            </span>
-                                        )}
+
+                                <div className="grid grid-cols-2 gap-3 w-full md:w-auto md:min-w-[260px]">
+                                    <div className="bg-primary-bg/60 border border-border/60 rounded-xl px-4 py-3">
+                                        <div className="text-[9px] uppercase tracking-[0.24em] text-text-muted mb-1">
+                                            {user?.role === 'Provider' ? 'Jobs Completed' : 'Engagements'}
+                                        </div>
+                                        <div className="text-xl font-mono text-text-main">
+                                            {completed}
+                                        </div>
+                                    </div>
+                                    <div className="bg-primary-bg/60 border border-border/60 rounded-xl px-4 py-3">
+                                        <div className="text-[9px] uppercase tracking-[0.24em] text-text-muted mb-1">
+                                            {user?.role === 'Provider' ? 'Total Earned' : 'Total Spent'}
+                                        </div>
+                                        <div className="text-xl font-mono text-text-main">
+                                            ${monetary.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                        </div>
+                                    </div>
+                                    <div className="bg-primary-bg/60 border border-border/60 rounded-xl px-4 py-3 col-span-2">
+                                        <div className="flex items-center justify-between mb-1">
+                                            <div className="text-[9px] uppercase tracking-[0.24em] text-text-muted">
+                                                Completion Rate
+                                            </div>
+                                            <div className="text-xs font-mono text-text-main">
+                                                {completionRate}%
+                                            </div>
+                                        </div>
+                                        <div className="h-1.5 rounded-full bg-primary-bg overflow-hidden">
+                                            <div
+                                                className="h-full bg-accent-gold"
+                                                style={{ width: `${completionRate}%` }}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             </div>

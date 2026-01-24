@@ -28,12 +28,26 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  headline: {
+    type: String,
+    trim: true
+  },
   skills: [{
     type: String
   }],
   hourlyRate: {
     type: Number
   },
+  yearsOfExperience: {
+    type: Number
+  },
+  experience: {
+    type: String,
+    default: ''
+  },
+  portfolioLinks: [{
+    type: String
+  }],
   company: {
     type: String,
     trim: true

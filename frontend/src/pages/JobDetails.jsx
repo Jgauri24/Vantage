@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import WalletFundingModal from '../components/WalletFundingModal';
-import ChatBox from '../components/ChatBox';
+import ProviderProfileModal from '../components/ProviderProfileModal';
+import OneOnOneChatModal from '../components/OneOnOneChatModal';
 
 
 const JobDetails = () => {
@@ -21,6 +22,9 @@ const JobDetails = () => {
     const [successMsg, setSuccessMsg] = useState('');
     const [showFundingModal, setShowFundingModal] = useState(false);
     const [requiredFunds, setRequiredFunds] = useState(0);
+    const [profileModalProviderId, setProfileModalProviderId] = useState(null);
+    const [chatModalOpen, setChatModalOpen] = useState(false);
+    const [chatWithUser, setChatWithUser] = useState(null);
 
     useEffect(() => {
         fetchJobDetails();
@@ -65,8 +69,7 @@ const JobDetails = () => {
     };
 
     const fetchMyBid = async () => {
-        // Mock implementation for now as seen in previous code
-        // actual implementation would fetch from API
+
     };
 
     const handleBidSubmit = async (e) => {
@@ -195,15 +198,32 @@ const JobDetails = () => {
     }
 
     return (
-        <div className="min-h-screen bg-primary-bg text-text-main p-6 flex flex-col items-center">
-            <div className="w-full max-w-4xl">
-                <button
-                    onClick={() => navigate(-1)}
-                    className="text-text-muted hover:text-accent-gold text-xs uppercase tracking-wider mb-6 flex items-center gap-2 transition-colors"
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Back
-                </button>
+        <div className="min-h-screen bg-primary-bg text-text-main">
+            <header className="bg-secondary-bg/80 backdrop-blur-md border-b border-border sticky top-0 z-20">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+                    <button
+                        onClick={() => navigate('/dashboard')}
+                        className="flex items-center gap-2 text-text-muted hover:text-accent-gold transition-colors text-xs uppercase tracking-widest font-bold"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Dashboard
+                    </button>
+                    <div className="font-serif text-lg text-accent-gold">Job Details</div>
+                    <div className="w-20"></div>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto px-6 py-8">
+                {error && (
+                    <div className="mb-6 bg-red-500/10 text-red-400 px-4 py-3 text-sm border border-red-500/20 rounded-lg">
+                        {error}
+                    </div>
+                )}
+                {successMsg && (
+                    <div className="mb-6 bg-green-500/10 text-green-400 px-4 py-3 text-sm border border-green-500/20 rounded-lg">
+                        {successMsg}
+                    </div>
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Main Job Content */}
@@ -234,13 +254,47 @@ const JobDetails = () => {
                                 <p className="whitespace-pre-wrap">{job.description}</p>
                             </div>
 
-                            <div className="mt-8 pt-6 border-t border-border flex items-center gap-2 text-xs text-text-muted">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                {job.location}
+                            <div className="mt-8 pt-6 border-t border-border flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-xs text-text-muted">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    {job.location}
+                                </div>
+                                {/* Chat button for providers who have bid (pending or accepted) */}
+                                {user?.role === 'Provider' && job.client && job.status === 'Open' && (
+                                    <button
+                                        onClick={() => {
+                                            setChatWithUser(job.client);
+                                            setChatModalOpen(true);
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-accent-gold/10 hover:bg-accent-gold/20 border border-accent-gold/30 text-accent-gold rounded-lg text-xs uppercase tracking-wider font-bold transition-colors"
+                                        title="Chat with client"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                        Chat with Client
+                                    </button>
+                                )}
+                                {/* Chat button for providers with accepted bid */}
+                                {user?.role === 'Provider' && job.client && (job.status === 'Contracted' || job.status === 'In-Progress' || job.status === 'Reviewing') && (
+                                    <button
+                                        onClick={() => {
+                                            setChatWithUser(job.client);
+                                            setChatModalOpen(true);
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-accent-gold/10 hover:bg-accent-gold/20 border border-accent-gold/30 text-accent-gold rounded-lg text-xs uppercase tracking-wider font-bold transition-colors"
+                                        title="Chat with client"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                        </svg>
+                                        Chat with Client
+                                    </button>
+                                )}
                             </div>
 
-                            {/* Delete Button for Owner */}
-                            {user?.role === 'Client' && (job.client?._id === user?.id || job.client?._id === user?._id) && (
+                            {/* Delete Button for Owner - Only if Open or Cancelled */}
+                            {user?.role === 'Client' && (job.client?._id === user?.id || job.client?._id === user?._id) && ['Open', 'Cancelled'].includes(job.status) && (
                                 <div className="mt-4 border-t border-border pt-4">
                                     <button
                                         onClick={handleDeleteJob}
@@ -269,18 +323,53 @@ const JobDetails = () => {
                                                         <div className="font-semibold text-text-main flex items-center gap-2">
                                                             {bid.provider?.name}
                                                             {bid.status === 'Accepted' && (
-                                                                <span className="text-[10px] bg-accent-gold text-primary-bg px-2 py-0.5 rounded font-bold uppercase tracking-wider">Accepted</span>
+                                                                <span className="text-[10px] bg-accent-gold text-primary-bg px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                                                                    Accepted
+                                                                </span>
                                                             )}
                                                         </div>
-                                                        <div className="text-[10px] text-text-muted">{new Date(bid.createdAt).toLocaleDateString()}</div>
+                                                        <div className="flex items-center gap-3 mt-1">
+                                                            <div className="text-[10px] text-text-muted">
+                                                                {new Date(bid.createdAt).toLocaleDateString()}
+                                                            </div>
+                                                            {bid.provider?._id && (
+                                                                <>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setProfileModalProviderId(bid.provider._id)}
+                                                                        className="text-[10px] uppercase tracking-wider font-semibold text-accent-gold hover:text-accent-gold/80"
+                                                                    >
+                                                                        View Profile
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setChatWithUser(bid.provider);
+                                                                            setChatModalOpen(true);
+                                                                        }}
+                                                                        className="text-accent-gold hover:text-accent-gold/80 transition-colors"
+                                                                        title="Chat with provider"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                                                        </svg>
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="font-mono text-accent-gold">${bid.amount?.toLocaleString()}</div>
+                                                        <div className="font-mono text-accent-gold">
+                                                            ${bid.amount?.toLocaleString()}
+                                                        </div>
                                                         {job.status === 'Open' && (
                                                             <button
                                                                 onClick={() => {
-                                                                    // New flow: Just accept, no payment yet
-                                                                    if (window.confirm(`Accept this proposal? You will be asked to pay 50% after approving the demo work.`)) {
+                                                                    if (
+                                                                        window.confirm(
+                                                                            `Accept this proposal? You will be asked to pay 50% after approving the demo work.`
+                                                                        )
+                                                                    ) {
                                                                         handleAcceptBid(bid._id);
                                                                     }
                                                                 }}
@@ -299,17 +388,10 @@ const JobDetails = () => {
                             </div>
                         )}
 
-                        {/* Chat Section */}
-                        {((user?.role === 'Client' && (job.client?._id === user?.id || job.client?._id === user?._id)) ||
-                            (user?.role === 'Provider' && job.status !== 'Open')) && (
-                                <div className="mt-8">
-                                    <ChatBox jobId={id} jobTitle={job.title} />
-                                </div>
-                            )}
 
                     </div>
 
-                    {/* Sidebar / Action Area */}
+
                     <div className="lg:col-span-1">
                         {/* Wallet Balance Widget for Client */}
                         {user?.role === 'Client' && (job.client?._id === user?.id || job.client?._id === user?._id) && (
@@ -328,17 +410,6 @@ const JobDetails = () => {
                         {user?.role === 'Provider' && job.status === 'Open' && (
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24">
                                 <h3 className="font-serif text-lg text-text-main mb-4">Submit Proposal</h3>
-                                {error && (
-                                    <div className="bg-red-500/10 text-red-400 px-3 py-2 mb-4 text-xs border border-red-500/20 rounded">
-                                        {error}
-                                    </div>
-                                )}
-                                {successMsg && (
-                                    <div className="bg-green-500/10 text-green-400 px-3 py-2 mb-4 text-xs border border-green-500/20 rounded">
-                                        {successMsg}
-                                    </div>
-                                )}
-
                                 <form onSubmit={handleBidSubmit} className="space-y-4">
                                     <div>
                                         <label className="text-[10px] uppercase tracking-wider text-text-muted font-medium mb-1 block">Proposed Amount ($)</label>
@@ -372,49 +443,61 @@ const JobDetails = () => {
                             </div>
                         )}
 
-                        {user?.role === 'Provider' && (job.status === 'Contracted' || job.status === 'In-Progress') && (
-                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
-                                <h3 className="font-serif text-lg text-text-main mb-2">
-                                    {job.status === 'Contracted' ? 'Active Contract' : 'Final Stage'}
-                                </h3>
-                                {(job.amountPaid || 0) > 0 && (
-                                    <div className="mb-4 bg-green-500/10 text-green-400 p-2 rounded text-xs border border-green-500/20">
-                                        50% Payment Received: ${job.amountPaid.toLocaleString()}
-                                    </div>
-                                )}
-                                <p className="text-text-muted text-sm mb-4">
-                                    {job.status === 'Contracted'
-                                        ? 'You are contracted for this engagement. Please submit initial work.'
-                                        : 'Please submit the final work for completion.'}
-                                </p>
-
-                                <div className="mb-4 text-left">
-                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-medium mb-1 block">
-                                        {job.status === 'Contracted' ? 'Upload Initial Work' : 'Upload Final Work'} (PDF/Image)
-                                    </label>
-                                    <input
-                                        type="file"
-                                        accept=".pdf,image/*"
-                                        onChange={(e) => setWorkFile(e.target.files[0])}
-                                        className="w-full text-xs text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-accent-gold/10 file:text-accent-gold hover:file:bg-accent-gold/20 cursor-pointer"
-                                    />
+                        {user?.role === 'Provider' && (job.status === 'Contracted' || job.status === 'In-Progress' || job.status === 'Reviewing') && (
+                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-serif text-lg text-text-main">
+                                        {job.status === 'Contracted' ? 'Active Contract' : job.status === 'Reviewing' ? 'Under Review' : 'Final Stage'}
+                                    </h3>
+                                    {job.client && (
+                                        <button
+                                            onClick={() => {
+                                                setChatWithUser(job.client);
+                                                setChatModalOpen(true);
+                                            }}
+                                            className="text-accent-gold hover:text-accent-gold/80 transition-colors"
+                                            title="Chat with client"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
+                                <div className="text-center">
+                                    {(job.amountPaid || 0) > 0 && (
+                                        <div className="mb-4 bg-green-500/10 text-green-400 p-2 rounded text-xs border border-green-500/20">
+                                            50% Payment Received: ${job.amountPaid.toLocaleString()}
+                                        </div>
+                                    )}
+                                    <p className="text-text-muted text-sm mb-4">
+                                        {job.status === 'Contracted'
+                                            ? 'You are contracted for this engagement. Please submit initial work.'
+                                            : 'Please submit the final work for completion.'}
+                                    </p>
 
-                                <button
-                                    onClick={handleSubmitWork}
-                                    className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300"
-                                >
-                                    {job.status === 'Contracted' ? 'Submit Work for Review' : 'Submit Final Work'}
-                                </button>
+                                    <div className="mb-4 text-left">
+                                        <label className="text-[10px] uppercase tracking-wider text-text-muted font-medium mb-1 block">
+                                            {job.status === 'Contracted' ? 'Upload Initial Work' : 'Upload Final Work'} (PDF/Image)
+                                        </label>
+                                        <input
+                                            type="file"
+                                            accept=".pdf,image/*"
+                                            onChange={(e) => setWorkFile(e.target.files[0])}
+                                            className="w-full text-xs text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-accent-gold/10 file:text-accent-gold hover:file:bg-accent-gold/20 cursor-pointer"
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleSubmitWork}
+                                        className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300"
+                                    >
+                                        {job.status === 'Contracted' ? 'Submit Work for Review' : 'Submit Final Work'}
+                                    </button>
+                                </div>
                             </div>
                         )}
 
-                        {user?.role === 'Provider' && job.status === 'Reviewing' && (
-                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
-                                <h3 className="font-serif text-lg text-text-main mb-2">Under Review</h3>
-                                <p className="text-text-muted text-sm">Client is reviewing your submission.</p>
-                            </div>
-                        )}
 
                         {user?.role === 'Client' && job.status === 'Reviewing' && (
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
@@ -470,7 +553,7 @@ const JobDetails = () => {
 
                     </div>
                 </div>
-            </div>
+            </main>
 
             <WalletFundingModal
                 isOpen={showFundingModal}
@@ -481,6 +564,24 @@ const JobDetails = () => {
                     setError('');
                 }}
                 initialAmount={requiredFunds > 0 ? requiredFunds : 100}
+            />
+
+            <ProviderProfileModal
+                providerId={profileModalProviderId}
+                isOpen={!!profileModalProviderId}
+                onClose={() => setProfileModalProviderId(null)}
+            />
+
+            <OneOnOneChatModal
+                isOpen={chatModalOpen}
+                onClose={() => {
+                    setChatModalOpen(false);
+                    setChatWithUser(null);
+                }}
+                jobId={id}
+                jobTitle={job?.title}
+                otherUser={chatWithUser}
+                currentUserId={user?.id || user?._id}
             />
         </div>
     );

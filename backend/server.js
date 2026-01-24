@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
-const Message = require('./models/Message'); // Import Message model
+const Message = require('./models/Message'); 
 
 require('dotenv').config();
 
@@ -11,7 +11,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*', // Allow all origins for dev
+    origin: '*', 
     methods: ['GET', 'POST']
   }
 });
@@ -31,6 +31,7 @@ const bidRoutes = require('./routes/bids');
 const userRoutes = require('./routes/users');
 const paymentRoutes = require('./routes/payments');
 const messageRoutes = require('./routes/messages');
+const adminRoutes = require('./routes/admin');
 
 const stripeWebhook = require('./routes/stripe-webhook');
 const { authenticate } = require('./middleware/auth');
@@ -40,10 +41,10 @@ mongoose
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-// Stripe webhook needs raw body, so register it BEFORE express.json()
+
 app.use('/api/stripe', stripeWebhook);
 
-// JSON body parser for all other routes
+
 app.use(express.json());
 
 // Register routes
@@ -53,6 +54,7 @@ app.use('/api/bids', bidRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use('/uploads', express.static('uploads'));
 
@@ -64,30 +66,38 @@ app.get('/api/profile', authenticate, (req, res) => {
   res.json({ user: req.user });
 });
 
-// Socket.io Logic
+
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  socket.on('joinRoom', (jobId) => {
-    socket.join(jobId);
-    console.log(`User ${socket.id} joined room ${jobId}`);
+  socket.on('joinConversation', (conversationId) => {
+    socket.join(conversationId);
+    console.log(`User ${socket.id} joined conversation ${conversationId}`);
   });
 
   socket.on('sendMessage', async (data) => {
-    const { jobId, senderId, content } = data;
+    const { jobId, senderId, recipientId, content } = data;
     
     // Save to DB
     try {
       const newMessage = new Message({
         job: jobId,
         sender: senderId,
+        recipient: recipientId,
         content
       });
       await newMessage.save();
-       // Populate sender details before emitting
-       await newMessage.populate('sender', 'name role');
+      
+      // Populate sender and recipient details before emitting
+      await newMessage.populate('sender', 'name role');
+      await newMessage.populate('recipient', 'name role');
 
-      io.to(jobId).emit('receiveMessage', newMessage);
+      // Create conversation room ID (sorted participants)
+      const participants = [senderId, recipientId].sort();
+      const conversationId = `${jobId}_${participants.join('_')}`;
+
+      // Emit to the conversation room
+      io.to(conversationId).emit('receiveMessage', newMessage);
     } catch (err) {
       console.error('Error saving message:', err);
     }

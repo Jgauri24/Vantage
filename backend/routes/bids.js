@@ -6,6 +6,25 @@ const Bid = require('../models/Bid');
 const User = require('../models/User');
 const Transaction = require('../models/Transaction');
 
+// Get provider's own bids
+router.get('/my', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'Provider') {
+      return res.status(403).json({ error: 'Only providers can access this endpoint' });
+    }
+    
+    const bids = await Bid.find({ provider: req.user.id })
+      .populate('job', 'title category status budget client createdAt')
+      .populate('job.client', 'name company')
+      .sort({ createdAt: -1 });
+    
+    res.json(bids);
+  } catch (error) {
+    console.error('Fetch provider bids error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Accept a bid
 router.patch('/:id/accept', authenticate, authorizeRole('Client'), async (req, res) => {
   try {
@@ -28,7 +47,7 @@ router.patch('/:id/accept', authenticate, authorizeRole('Client'), async (req, r
     bid.status = 'Accepted';
     await bid.save();
 
-
+    // Update job status
     job.status = 'Contracted';
     job.paymentHeld = false; 
     await job.save();
@@ -39,8 +58,11 @@ router.patch('/:id/accept', authenticate, authorizeRole('Client'), async (req, r
         { status: 'Rejected' }
     );
 
+    // Get client for response
+    const client = await User.findById(req.user.id);
+
     res.json({ 
-        message: 'Bid accepted and payment processed', 
+        message: 'Bid accepted successfully. Job is now contracted.', 
         bid, 
         job,
         newWalletBalance: client.walletBalance

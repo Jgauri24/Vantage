@@ -16,7 +16,7 @@ router.get('/me', authenticate, async (req, res) => {
 });
 
 
-// Get analytics - MUST come before /:id route to avoid matching "analytics" as an ID
+
 router.get('/analytics', authenticate, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -78,7 +78,19 @@ router.get('/:id', authenticate, async (req, res) => {
 router.patch('/profile', authenticate, async (req, res) => {
     try {
         const updates = Object.keys(req.body);
-        const allowedUpdates = ['name', 'company', 'bio', 'skills', 'hourlyRate', 'location', 'walletBalance']; // allow walletBalance for dev simplicity, in prod this should be restricted
+        const allowedUpdates = [
+            'name',
+            'company',
+            'bio',
+            'skills',
+            'hourlyRate',
+            'location',
+            'walletBalance', // in production this should not be client-editable
+            'headline',
+            'yearsOfExperience',
+            'experience',
+            'portfolioLinks'
+        ];
         const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
 
         if (!isValidOperation) {

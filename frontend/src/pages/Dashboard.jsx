@@ -9,27 +9,47 @@ const Dashboard = () => {
     const { user, logout, refreshUser } = useAuth();
     const navigate = useNavigate();
     const [activeJobs, setActiveJobs] = useState([]);
+    const [analytics, setAnalytics] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [fundingAmount, setFundingAmount] = useState('');
-    const [isFunding, setIsFunding] = useState(false);
     const [showFundModal, setShowFundModal] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 await refreshUser();
-                const res = await api.get('/jobs');
-                setActiveJobs(res.data);
+
+                if (user?.role === 'Client') {
+                    // Clients see their posted jobs
+                    const jobsRes = await api.get('/jobs');
+                    setActiveJobs(jobsRes.data);
+                } else if (user?.role === 'Provider') {
+                    // Providers see their accepted bids/contracts
+                    const bidsRes = await api.get('/bids/my');
+
+                    // Get jobs from accepted bids
+                    const acceptedBids = bidsRes.data.filter(bid => bid.status === 'Accepted');
+                    const providerJobs = acceptedBids
+                        .map(bid => bid.job)
+                        .filter(job => job && ['Contracted', 'In-Progress', 'Reviewing', 'Completed'].includes(job.status));
+                    setActiveJobs(providerJobs);
+                }
+
+                // Fetch analytics for both
+                const analyticsRes = await api.get('/users/analytics');
+                setAnalytics(analyticsRes.data);
             } catch (err) {
-                console.error("Ledger sync failed", err);
+                console.error("Dashboard data fetch failed", err);
             } finally {
                 setLoading(false);
             }
-        }
-        if (user) fetchData();
-    }, []);
+        };
 
-    const handleFundingSuccess = (newBalance) => {
+        if (user) {
+            fetchData();
+        }
+    }, [user, refreshUser]);
+
+    const handleFundingSuccess = () => {
         refreshUser();
         // optionally show success toast
     };
@@ -50,6 +70,14 @@ const Dashboard = () => {
                             <p className="font-medium text-xs text-text-main">{user?.name}</p>
                             <p className="text-[10px] font-mono uppercase tracking-wider text-accent-gold">{user?.role}</p>
                         </div>
+                        {user?.role === 'Admin' && (
+                            <button
+                                onClick={() => navigate('/admin')}
+                                className="text-red-400 hover:text-red-500 text-xs uppercase tracking-wider transition-colors"
+                            >
+                                Admin Panel
+                            </button>
+                        )}
                         <button
                             onClick={logout}
                             className="text-text-muted hover:text-white text-xs uppercase tracking-wider transition-colors"
@@ -78,6 +106,34 @@ const Dashboard = () => {
 
                     {/* Stats / Quick Info */}
                     <div className="md:col-span-4 lg:col-span-3 space-y-6">
+                        {/* Performance Stats */}
+                        {analytics && (
+                            <div className="bg-secondary-bg border border-border rounded-xl p-5 shadow-lg">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">
+                                    {user?.role === 'Client' ? 'Your Activity' : 'Performance'}
+                                </h3>
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="text-[10px] uppercase text-text-muted mb-1">
+                                            {user?.role === 'Client' ? 'Total Spent' : 'Total Earned'}
+                                        </div>
+                                        <div className="text-2xl font-serif text-accent-gold">
+                                            ${analytics.monetaryValue?.toLocaleString() || '0'}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] uppercase text-text-muted mb-1">
+                                            {user?.role === 'Client' ? 'Jobs Posted' : 'Jobs Completed'}
+                                        </div>
+                                        <div className="text-2xl font-serif text-text-main">
+                                            {analytics.totalCompleted || 0}
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        )}
+
                         <div className="bg-secondary-bg border border-border rounded-xl p-5 shadow-lg">
                             <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">Identity</h3>
                             <div className="space-y-4">
@@ -108,18 +164,24 @@ const Dashboard = () => {
 
                         <div className="bg-gradient-to-br from-accent-gold to-yellow-700 rounded-xl p-5 text-primary-bg shadow-lg">
                             <div className="flex justify-between items-start mb-8">
-                                <h3 className="text-xs font-bold uppercase tracking-widest opacity-80">Credit Balance</h3>
+                                <h3 className="text-xs font-bold uppercase tracking-widest opacity-80">
+                                    {user?.role === 'Client' ? 'Credit Balance' : 'Earnings'}
+                                </h3>
                                 <svg className="w-5 h-5 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                             <div className="text-3xl font-serif font-bold mb-1">${user?.walletBalance?.toLocaleString() || '0.00'}</div>
-                            <div className="text-xs opacity-70 mb-4">Available for allocation</div>
+                            <div className="text-xs opacity-70 mb-4">
+                                {user?.role === 'Client' ? 'Available for allocation' : 'Available balance'}
+                            </div>
 
-                            <button
-                                onClick={() => setShowFundModal(true)}
-                                className="w-full bg-primary-bg/20 hover:bg-primary-bg/40 text-primary-bg font-bold text-[10px] uppercase tracking-wider py-2 rounded border border-primary-bg/30 transition-all"
-                            >
-                                Add Funds
-                            </button>
+                            {user?.role === 'Client' && (
+                                <button
+                                    onClick={() => setShowFundModal(true)}
+                                    className="w-full bg-primary-bg/20 hover:bg-primary-bg/40 text-primary-bg font-bold text-[10px] uppercase tracking-wider py-2 rounded border border-primary-bg/30 transition-all"
+                                >
+                                    Add Funds
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -133,44 +195,85 @@ const Dashboard = () => {
                     <div className="md:col-span-8 lg:col-span-9 space-y-6">
                         {/* Quick Actions */}
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            <button
-                                onClick={() => navigate('/jobs/create')}
-                                className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-                                </div>
-                                <div className="text-sm font-semibold text-text-main">Post Job</div>
-                                <div className="text-[10px] text-text-muted">Create request</div>
-                            </button>
+                            {user?.role === 'Client' ? (
+                                <>
+                                    <button
+                                        onClick={() => navigate('/jobs/create')}
+                                        className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+                                        </div>
+                                        <div className="text-sm font-semibold text-text-main">Post Job</div>
+                                        <div className="text-[10px] text-text-muted">Create request</div>
+                                    </button>
 
-                            <button
-                                onClick={() => navigate('/marketplace')}
-                                className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                </div>
-                                <div className="text-sm font-semibold text-text-main">Marketplace</div>
-                                <div className="text-[10px] text-text-muted">Browse listings</div>
-                            </button>
+                                    <button
+                                        onClick={() => navigate('/marketplace')}
+                                        className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        </div>
+                                        <div className="text-sm font-semibold text-text-main">Marketplace</div>
+                                        <div className="text-[10px] text-text-muted">Browse providers</div>
+                                    </button>
 
-                            <button
-                                onClick={() => navigate('/analytics')}
-                                className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                </div>
-                                <div className="text-sm font-semibold text-text-main">Analytics</div>
-                                <div className="text-[10px] text-text-muted">View reports</div>
-                            </button>
+                                    <button
+                                        onClick={() => navigate('/analytics')}
+                                        className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                                        </div>
+                                        <div className="text-sm font-semibold text-text-main">Analytics</div>
+                                        <div className="text-[10px] text-text-muted">View reports</div>
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => navigate('/marketplace')}
+                                        className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        </div>
+                                        <div className="text-sm font-semibold text-text-main">Browse Jobs</div>
+                                        <div className="text-[10px] text-text-muted">Find opportunities</div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate('/profile')}
+                                        className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        </div>
+                                        <div className="text-sm font-semibold text-text-main">My Profile</div>
+                                        <div className="text-[10px] text-text-muted">Edit portfolio</div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => navigate('/analytics')}
+                                        className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                                        </div>
+                                        <div className="text-sm font-semibold text-text-main">Analytics</div>
+                                        <div className="text-[10px] text-text-muted">View earnings</div>
+                                    </button>
+                                </>
+                            )}
                         </div>
 
-                        {/* Ledger Table Placeholder */}
+                        {/* Ledger Table */}
                         <div className="bg-secondary-bg border border-border rounded-xl overflow-hidden shadow-lg">
                             <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-primary-bg/30">
-                                <h3 className="font-serif text-lg text-text-main">Active Ledger</h3>
+                                <h3 className="font-serif text-lg text-text-main">
+                                    {user?.role === 'Client' ? 'My Jobs' : 'Active Contracts'}
+                                </h3>
                                 <div className="flex gap-2">
                                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                                     <span className="text-[10px] uppercase text-text-muted font-bold tracking-wider">Live Sync</span>
@@ -187,18 +290,33 @@ const Dashboard = () => {
                                         <div className="w-16 h-16 bg-primary-bg border border-border rounded-full flex items-center justify-center mx-auto mb-4">
                                             <svg className="w-6 h-6 text-border" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                                         </div>
-                                        <p className="text-sm">No active entries found in the ledger.</p>
-                                        <p className="text-xs mt-1 text-text-muted/70">Transactions and contracts will appear here automatically.</p>
+                                        <p className="text-sm">
+                                            {user?.role === 'Client'
+                                                ? 'No jobs posted yet.'
+                                                : 'No active contracts.'}
+                                        </p>
+                                        <p className="text-xs mt-1 text-text-muted/70">
+                                            {user?.role === 'Client'
+                                                ? 'Post a job to get started.'
+                                                : 'Browse the marketplace to find opportunities.'}
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead className="bg-primary-bg/50 text-[10px] uppercase tracking-wider text-text-muted border-b border-border">
                                                 <tr>
-                                                    <th className="px-6 py-4 font-medium">Engagement</th>
+                                                    <th className="px-6 py-4 font-medium">
+                                                        {user?.role === 'Client' ? 'Job Title' : 'Contract'}
+                                                    </th>
                                                     <th className="px-6 py-4 font-medium">Category</th>
+                                                    {user?.role === 'Provider' && (
+                                                        <th className="px-6 py-4 font-medium">Client</th>
+                                                    )}
                                                     <th className="px-6 py-4 font-medium">Status</th>
-                                                    <th className="px-6 py-4 font-medium text-right">Value</th>
+                                                    <th className="px-6 py-4 font-medium text-right">
+                                                        {user?.role === 'Client' ? 'Budget' : 'Earning'}
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-border/50">
@@ -210,27 +328,47 @@ const Dashboard = () => {
                                                     >
                                                         <td className="px-6 py-4">
                                                             <div className="font-medium text-text-main text-sm">{job.title}</div>
-                                                            <div className="text-[10px] text-text-muted">{new Date(job.createdAt).toLocaleDateString()}</div>
+                                                            <div className="text-[10px] text-text-muted">
+                                                                {new Date(job.createdAt || job.job?.createdAt).toLocaleDateString()}
+                                                            </div>
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             <span className="px-2 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-accent-gold">
-                                                                {job.category}
+                                                                {job.category || job.job?.category}
                                                             </span>
                                                         </td>
+                                                        {user?.role === 'Provider' && (
+                                                            <td className="px-6 py-4">
+                                                                <div className="text-sm text-text-main">
+                                                                    {job.client?.name || job.job?.client?.name || 'N/A'}
+                                                                </div>
+                                                                {job.client?.company || job.job?.client?.company ? (
+                                                                    <div className="text-[10px] text-text-muted">
+                                                                        {job.client?.company || job.job?.client?.company}
+                                                                    </div>
+                                                                ) : null}
+                                                            </td>
+                                                        )}
                                                         <td className="px-6 py-4">
-                                                            <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium border ${job.status === 'Open' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
-                                                                job.status === 'Contracted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                                    'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                            <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium border ${(job.status || job.job?.status) === 'Open' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                                (job.status || job.job?.status) === 'Contracted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                    (job.status || job.job?.status) === 'In-Progress' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                                                                        (job.status || job.job?.status) === 'Reviewing' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                                                                            (job.status || job.job?.status) === 'Completed' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20' :
+                                                                                'bg-gray-500/10 text-gray-400 border-gray-500/20'
                                                                 }`}>
-                                                                <span className={`w-1.5 h-1.5 rounded-full ${job.status === 'Open' ? 'bg-green-400' :
-                                                                    job.status === 'Contracted' ? 'bg-blue-400' :
-                                                                        'bg-gray-400'
+                                                                <span className={`w-1.5 h-1.5 rounded-full ${(job.status || job.job?.status) === 'Open' ? 'bg-green-400' :
+                                                                    (job.status || job.job?.status) === 'Contracted' ? 'bg-blue-400' :
+                                                                        (job.status || job.job?.status) === 'In-Progress' ? 'bg-yellow-400' :
+                                                                            (job.status || job.job?.status) === 'Reviewing' ? 'bg-purple-400' :
+                                                                                (job.status || job.job?.status) === 'Completed' ? 'bg-gray-400' :
+                                                                                    'bg-gray-400'
                                                                     }`}></span>
-                                                                {job.status}
+                                                                {job.status || job.job?.status}
                                                             </span>
                                                         </td>
                                                         <td className="px-6 py-4 text-right font-mono text-sm text-text-main">
-                                                            ${job.budget?.toLocaleString()}
+                                                            ${(job.budget || job.job?.budget)?.toLocaleString()}
                                                         </td>
                                                     </tr>
                                                 ))}

@@ -36,13 +36,19 @@ router.get('/', authenticate, async (req, res) => {
     if (req.user.role === 'Client') {
       query.client = req.user.id;
     } else if (req.user.role === 'Provider') {
-      query.status = { $in: ['Open', 'Contracted'] };
+      if (status) {
+        query.status = status;
+      } else {
+        query.status = { $in: ['Open', 'Contracted'] };
+      }
     } else if (req.user.role === 'Admin') {
-      // Admin sees everything
+
+      if (status) {
+        query.status = status;
+      }
     }
 
     if (category) query.category = category;
-    if (status) query.status = status;
 
     const jobs = await Job.find(query)
       .populate('client', 'name company')
@@ -296,13 +302,15 @@ router.delete('/:id', authenticate, authorizeRole('Client'), async (req, res) =>
             return res.status(403).json({ error: 'Access denied.' });
         }
 
-        // Optional: Prevent deletion if contract is active/completed? 
-        // For now, allowing delete but maybe we should just check if payments exist?
-        // simple delete for now as requested.
+        if (['Contracted', 'In-Progress', 'Reviewing', 'Completed'].includes(job.status)) {
+            return res.status(400).json({ error: 'Cannot delete an active or completed engagement.' });
+        }
+
+
         
         await Job.deleteOne({ _id: job._id });
         
-        // Also delete associated bids?
+        
         const Bid = require('../models/Bid');
         await Bid.deleteMany({ job: job._id });
 

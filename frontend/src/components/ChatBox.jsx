@@ -11,23 +11,22 @@ const ChatBox = ({ jobId, jobTitle }) => {
     const [error, setError] = useState('');
     const messagesEndRef = useRef(null);
 
-    // Calculate Socket URL (remove /api from the end of the API_URL if present)
+
     const socketUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace('/api', '');
 
     useEffect(() => {
-        // Initialize Socket
+   
         const newSocket = io(socketUrl);
         setSocket(newSocket);
 
-        // Join Room
         newSocket.emit('joinRoom', jobId);
 
-        // Listen for messages
+     
         newSocket.on('receiveMessage', (message) => {
             setMessages((prev) => [...prev, message]);
         });
 
-        // Fetch initial history
+
         const fetchHistory = async () => {
             try {
                 const res = await api.get(`/messages/${jobId}`);

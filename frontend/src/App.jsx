@@ -10,6 +10,7 @@ import Marketplace from './pages/Marketplace';
 import JobDetails from './pages/JobDetails';
 import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -62,6 +63,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Analytics />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />

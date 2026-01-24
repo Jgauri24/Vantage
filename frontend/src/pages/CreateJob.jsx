@@ -24,11 +24,11 @@ const CreateJob = () => {
         setError('');
 
         try {
-            await api.post('/jobs', formData);
+            const response = await api.post('/jobs', formData);
+            // Navigate to dashboard - it will refresh and show the new job
             navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to create job');
-        } finally {
             setLoading(false);
         }
     };
