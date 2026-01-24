@@ -33,7 +33,7 @@ const paymentRoutes = require('./routes/payments');
 const messageRoutes = require('./routes/messages');
 const adminRoutes = require('./routes/admin');
 
-const stripeWebhook = require('./routes/stripe-webhook');
+
 const { authenticate } = require('./middleware/auth');
 
 mongoose
@@ -42,7 +42,7 @@ mongoose
   .catch((err) => console.error('MongoDB connection error:', err));
 
 
-app.use('/api/stripe', stripeWebhook);
+
 
 
 app.use(express.json());
