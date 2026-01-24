@@ -109,10 +109,8 @@ const JobDetails = () => {
 
     const [workFile, setWorkFile] = useState(null);
 
-    // ... (existing code)
-
     const handleSubmitWork = async (e) => {
-        e.preventDefault(); // Prevent default if called from form
+        e.preventDefault();
 
         if (!workFile) {
             setError('Please select a file to upload.');
@@ -139,12 +137,43 @@ const JobDetails = () => {
 
     const handleApproveWork = async () => {
         try {
-            await api.patch(`/jobs/${id}/complete`);
-            setSuccessMsg('Work approved. Payment released.');
+            const res = await api.patch(`/jobs/${id}/approve`);
+            setSuccessMsg(res.data.message || 'Payment released.');
             await refreshUser();
             fetchJobDetails();
         } catch (err) {
-            setError('Failed to approve work.');
+            console.error("Approve work error:", err);
+
+            if (err.response?.status === 402 && err.response?.data?.required) {
+                setRequiredFunds(err.response.data.required - (err.response.data.current || 0));
+                setShowFundingModal(true); // Open modal
+                setError(`Insufficient funds to release payment. Please add $${(err.response.data.required - (err.response.data.current || 0)).toFixed(2)} to your wallet.`);
+            } else {
+                setError(err.response?.data?.error || 'Failed to approve work.');
+            }
+        }
+    };
+
+    const handleRejectWork = async () => {
+        if (!window.confirm('Are you sure you want to reject this submission? The provider will be asked to revise.')) return;
+
+        try {
+            await api.patch(`/jobs/${id}/reject`);
+            setSuccessMsg('Work rejected. Provider notified to revise.');
+            fetchJobDetails();
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to reject work.');
+        }
+    };
+
+    const handleDeleteJob = async () => {
+        if (!window.confirm('Are you sure you want to delete this engagement? This action cannot be undone.')) return;
+
+        try {
+            await api.delete(`/jobs/${id}`);
+            navigate('/dashboard');
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to delete engagement.');
         }
     };
 
@@ -209,6 +238,19 @@ const JobDetails = () => {
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                                 {job.location}
                             </div>
+
+                            {/* Delete Button for Owner */}
+                            {user?.role === 'Client' && (job.client?._id === user?.id || job.client?._id === user?._id) && (
+                                <div className="mt-4 border-t border-border pt-4">
+                                    <button
+                                        onClick={handleDeleteJob}
+                                        className="text-red-400 hover:text-red-500 text-xs uppercase tracking-wider font-bold flex items-center gap-2 transition-colors"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        Delete Engagement
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Bids List (Client Only) */}
@@ -237,13 +279,14 @@ const JobDetails = () => {
                                                         {job.status === 'Open' && (
                                                             <button
                                                                 onClick={() => {
-                                                                    if (window.confirm(`Accepting this proposal will deduct $${job.budget} from your wallet. Proceed?`)) {
+                                                                    // New flow: Just accept, no payment yet
+                                                                    if (window.confirm(`Accept this proposal? You will be asked to pay 50% after approving the demo work.`)) {
                                                                         handleAcceptBid(bid._id);
                                                                     }
                                                                 }}
                                                                 className="mt-2 text-[10px] uppercase tracking-wider font-bold text-primary-bg bg-text-muted hover:bg-accent-gold px-3 py-1 rounded transition-colors"
                                                             >
-                                                                Accept & Pay
+                                                                Accept & Request Demo
                                                             </button>
                                                         )}
                                                     </div>
@@ -329,13 +372,26 @@ const JobDetails = () => {
                             </div>
                         )}
 
-                        {user?.role === 'Provider' && job.status === 'Contracted' && (
+                        {user?.role === 'Provider' && (job.status === 'Contracted' || job.status === 'In-Progress') && (
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
-                                <h3 className="font-serif text-lg text-text-main mb-2">Active Contract</h3>
-                                <p className="text-text-muted text-sm mb-4">You are contracted for this engagement.</p>
+                                <h3 className="font-serif text-lg text-text-main mb-2">
+                                    {job.status === 'Contracted' ? 'Active Contract' : 'Final Stage'}
+                                </h3>
+                                {(job.amountPaid || 0) > 0 && (
+                                    <div className="mb-4 bg-green-500/10 text-green-400 p-2 rounded text-xs border border-green-500/20">
+                                        50% Payment Received: ${job.amountPaid.toLocaleString()}
+                                    </div>
+                                )}
+                                <p className="text-text-muted text-sm mb-4">
+                                    {job.status === 'Contracted'
+                                        ? 'You are contracted for this engagement. Please submit initial work.'
+                                        : 'Please submit the final work for completion.'}
+                                </p>
 
                                 <div className="mb-4 text-left">
-                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-medium mb-1 block">Upload Work (PDF/Image)</label>
+                                    <label className="text-[10px] uppercase tracking-wider text-text-muted font-medium mb-1 block">
+                                        {job.status === 'Contracted' ? 'Upload Initial Work' : 'Upload Final Work'} (PDF/Image)
+                                    </label>
                                     <input
                                         type="file"
                                         accept=".pdf,image/*"
@@ -348,7 +404,7 @@ const JobDetails = () => {
                                     onClick={handleSubmitWork}
                                     className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300"
                                 >
-                                    Submit Work for Review
+                                    {job.status === 'Contracted' ? 'Submit Work for Review' : 'Submit Final Work'}
                                 </button>
                             </div>
                         )}
@@ -366,28 +422,38 @@ const JobDetails = () => {
                                 <p className="text-text-muted text-sm mb-4">Provider has submitted work for approval.</p>
 
                                 {job.workSubmission && (
-                                    <div className="mb-4 bg-primary-bg/30 p-3 rounded-lg border border-border text-left">
-                                        <div className="text-[10px] uppercase text-text-muted mb-1">Submitted File</div>
+                                    <div className="mb-4 bg-primary-bg/30 p-4 rounded-lg border border-border text-left">
+                                        <div className="text-[10px] uppercase text-text-muted mb-2 font-bold tracking-wider">Submitted File</div>
                                         <a
                                             href={job.workSubmission.fileUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-accent-gold hover:underline text-sm font-medium flex items-center gap-2"
+                                            className="bg-accent-gold/10 hover:bg-accent-gold/20 border border-accent-gold/30 text-accent-gold p-3 rounded flex items-center gap-3 transition-colors mb-2"
                                         >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                            {job.workSubmission.fileName || 'View Submission'}
+                                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            <span className="truncate font-medium text-sm">{job.workSubmission.fileName || 'View Submission'}</span>
                                         </a>
-                                        <div className="text-[10px] text-text-muted mt-1 text-right">
-                                            {new Date(job.workSubmission.submittedAt).toLocaleDateString()}
+                                        <div className="text-[10px] text-text-muted text-right">
+                                            Submitted: {new Date(job.workSubmission.submittedAt).toLocaleString()}
                                         </div>
                                     </div>
                                 )}
-                                <button
-                                    onClick={handleApproveWork}
-                                    className="w-full bg-green-600 hover:bg-green-500 text-white py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-green-500/20 transition-all duration-300"
-                                >
-                                    Approve & Pay
-                                </button>
+
+                                <div className="space-y-3">
+                                    <button
+                                        onClick={handleApproveWork}
+                                        className="w-full bg-green-600 hover:bg-green-500 text-white py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-green-500/20 transition-all duration-300"
+                                    >
+                                        {(job.amountPaid || 0) === 0 ? 'Approve & Release 50%' : 'Approve & Release Remainder'}
+                                    </button>
+
+                                    <button
+                                        onClick={handleRejectWork}
+                                        className="w-full bg-transparent border border-red-500/50 text-red-400 hover:bg-red-500/10 py-3 font-bold uppercase tracking-widest text-xs rounded-lg transition-all duration-300"
+                                    >
+                                        Reject & Request Revision
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -395,14 +461,13 @@ const JobDetails = () => {
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24 text-center">
                                 <h3 className="font-serif text-lg text-text-main mb-2 text-green-400">Completed</h3>
                                 <p className="text-text-muted text-sm">This engagement is closed.</p>
+                                <div className="mt-4 p-3 bg-secondary-bg/50 rounded border border-border">
+                                    <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Total Paid</div>
+                                    <div className="text-xl font-mono text-accent-gold">${(job.amountPaid || job.budget).toLocaleString()}</div>
+                                </div>
                             </div>
                         )}
 
-                        {user?.role === 'Client' && job.client?._id !== user?.id && (
-                            <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl sticky top-24">
-                                <p className="text-text-muted text-sm">You are viewing this as a Client.</p>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>

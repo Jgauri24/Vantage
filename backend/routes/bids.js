@@ -15,7 +15,7 @@ router.patch('/:id/accept', authenticate, authorizeRole('Client'), async (req, r
     const job = await Job.findById(bid.job._id);
     if (!job) return res.status(404).json({ error: 'Job not found' });
 
-    // Verify ownership
+   
     if (job.client.toString() !== req.user.id) {
         return res.status(403).json({ error: 'Access denied. You can only accept bids for your own jobs.' });
     }
@@ -24,40 +24,13 @@ router.patch('/:id/accept', authenticate, authorizeRole('Client'), async (req, r
         return res.status(400).json({ error: 'Job is not open for contracting.' });
     }
 
-    // Check wallet balance
-    const client = await User.findById(req.user.id);
-    if (!client.walletBalance || client.walletBalance < job.budget) {
-        return res.status(400).json({ 
-            error: 'Insufficient wallet balance',
-            required: job.budget,
-            current: client.walletBalance || 0
-        });
-    }
-
-    // Deduct from client wallet
-    client.walletBalance -= job.budget;
-    await client.save();
-
-    // Create transaction record for payment
-    const transaction = new Transaction({
-        user: client._id,
-        type: 'job_payment',
-        amount: -job.budget, // Negative for deduction
-        balanceAfter: client.walletBalance,
-        relatedJob: job._id,
-        status: 'completed',
-        description: `Payment for job: ${job.title}`
-    });
-    await transaction.save();
-
     // Update Bid status
     bid.status = 'Accepted';
     await bid.save();
 
-    // Update Job status and payment tracking
+
     job.status = 'Contracted';
-    job.paymentHeld = true;
-    job.transactionIds.push(transaction._id);
+    job.paymentHeld = false; 
     await job.save();
 
     // Reject other bids for this job

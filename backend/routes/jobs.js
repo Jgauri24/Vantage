@@ -4,7 +4,7 @@ const Job = require('../models/Job');
 const Bid = require('../models/Bid');
 const { authenticate, authorizeRole } = require('../middleware/auth');
 
-// Create a new job (Client only)
+
 router.post('/', authenticate, authorizeRole('Client'), async (req, res) => {
   try {
     const { title, description, category, budget, location } = req.body;
@@ -73,7 +73,6 @@ router.get('/:id/bids', authenticate, async (req, res) => {
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Job not found' });
 
-    // Authorization: Only the client who posted the job can view bids
     if (req.user.role === 'Client' && job.client.toString() !== req.user.id) {
         return res.status(403).json({ error: 'Access denied' });
     }
@@ -122,9 +121,9 @@ router.post('/:id/bids', authenticate, authorizeRole('Provider'), async (req, re
 
 
 const upload = require('../middleware/upload');
-const User = require('../models/User'); // Import User model
+const User = require('../models/User');
 
-// ... (other routes)
+
 
 // Submit work (Provider only) - now with file upload
 router.patch('/:id/submit', authenticate, authorizeRole('Provider'), upload.single('workFile'), async (req, res) => {
@@ -162,8 +161,8 @@ router.patch('/:id/submit', authenticate, authorizeRole('Provider'), upload.sing
   }
 });
 
-// Complete job (Client only)
-router.patch('/:id/complete', authenticate, authorizeRole('Client'), async (req, res) => {
+// Approve work (Client only) - Half or Full payment
+router.patch('/:id/approve', authenticate, authorizeRole('Client'), async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ error: 'Job not found' });
@@ -173,17 +172,13 @@ router.patch('/:id/complete', authenticate, authorizeRole('Client'), async (req,
     }
 
     if (job.status !== 'Reviewing') {
-     return res.status(400).json({ error: 'Job is not ready for completion (must be in Reviewing state).' });
+     return res.status(400).json({ error: 'Job is not checking for approval.' });
     }
 
-    if (!job.paymentHeld) {
-        return res.status(400).json({ error: 'No payment was held for this job.' });
-    }
 
-    // Find accepted bid to get the provider
     const acceptedBid = await Bid.findOne({ job: job._id, status: 'Accepted' });
     if (!acceptedBid) {
-        return res.status(400).json({ error: 'No accepted bid found for this job.' });
+        return res.status(400).json({ error: 'No accepted bid found.' });
     }
 
     const provider = await User.findById(acceptedBid.provider);
@@ -191,38 +186,130 @@ router.patch('/:id/complete', authenticate, authorizeRole('Client'), async (req,
         return res.status(404).json({ error: 'Provider not found.' });
     }
 
-    // Add funds to provider wallet
-    provider.walletBalance = (provider.walletBalance || 0) + job.budget;
+    const Transaction = require('../models/Transaction');
+    let releaseAmount = 0;
+    let isFinal = false;
+
+    // Determine payment stage
+    if (job.amountPaid === 0 || !job.amountPaid) {
+        // First approval: Pay 50%
+        releaseAmount = job.budget * 0.5;
+        job.amountPaid = releaseAmount;
+        job.status = 'In-Progress'; 
+    } else {
+        // Final approval: Pay Remainder
+        releaseAmount = job.budget - job.amountPaid;
+        job.amountPaid += releaseAmount;
+        job.status = 'Completed';
+        job.paymentReleased = true;
+        isFinal = true;
+    }
+
+    // Check Client Wallet Balance
+    const client = await User.findById(req.user.id);
+    if (!client.walletBalance || client.walletBalance < releaseAmount) {
+        return res.status(402).json({ 
+            error: 'Insufficient funds for approval.',
+            required: releaseAmount,
+            current: client.walletBalance || 0
+        });
+    }
+
+    // Deduct from Client
+    client.walletBalance -= releaseAmount;
+    await client.save();
+
+    // Create Client Transaction (Payment)
+    const clientTransaction = new Transaction({
+        user: client._id,
+        type: 'job_payment',
+        amount: -releaseAmount,
+        balanceAfter: client.walletBalance,
+        relatedJob: job._id,
+        status: 'completed',
+        description: `Payment for job: ${job.title} (${isFinal ? 'Final' : 'Partial'})`
+    });
+    await clientTransaction.save();
+
+    // Credit Provider
+    provider.walletBalance = (provider.walletBalance || 0) + releaseAmount;
     await provider.save();
 
-    // Create transaction record for provider earning
-    const Transaction = require('../models/Transaction');
-    const transaction = new Transaction({
+    // Create Provider Transaction (Earning)
+    const providerTransaction = new Transaction({
         user: provider._id,
         type: 'job_earning',
-        amount: job.budget,
+        amount: releaseAmount,
         balanceAfter: provider.walletBalance,
         relatedJob: job._id,
         status: 'completed',
-        description: `Earned from job: ${job.title}`
+        description: `Earned from job: ${job.title} (${isFinal ? 'Final' : 'Partial'} Payment)`
     });
-    await transaction.save();
+    await providerTransaction.save();
 
-    // Update job status and payment tracking
-    job.status = 'Completed';
-    job.paymentReleased = true;
-    job.transactionIds.push(transaction._id);
+    job.transactionIds.push(clientTransaction._id, providerTransaction._id);
     await job.save();
 
     res.json({ 
-        job,
-        providerEarning: job.budget,
-        message: 'Job completed and payment released to provider'
+        job, 
+        released: releaseAmount, 
+        isFinal,
+        message: isFinal ? 'Job completed. Full payment released.' : '50% payment released. Job active for final submission.'
     });
+
   } catch (error) {
-    console.error('Job completion error:', error);
+    console.error('Job approval error:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// Reject work (Client only)
+router.patch('/:id/reject', authenticate, authorizeRole('Client'), async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id);
+        if (!job) return res.status(404).json({ error: 'Job not found' });
+
+        if (job.client.toString() !== req.user.id) {
+            return res.status(403).json({ error: 'Access denied.' });
+        }
+
+        if (job.status !== 'Reviewing') {
+            return res.status(400).json({ error: 'Job is not under review.' });
+        }
+
+        job.status = 'In-Progress';
+        await job.save();
+
+        res.json({ job, message: 'Work rejected. Provider can re-submit.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete job (Client only)
+router.delete('/:id', authenticate, authorizeRole('Client'), async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id);
+        if (!job) return res.status(404).json({ error: 'Job not found' });
+
+        if (job.client.toString() !== req.user.id) {
+            return res.status(403).json({ error: 'Access denied.' });
+        }
+
+        // Optional: Prevent deletion if contract is active/completed? 
+        // For now, allowing delete but maybe we should just check if payments exist?
+        // simple delete for now as requested.
+        
+        await Job.deleteOne({ _id: job._id });
+        
+        // Also delete associated bids?
+        const Bid = require('../models/Bid');
+        await Bid.deleteMany({ job: job._id });
+
+        res.json({ message: 'Job deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 module.exports = router;

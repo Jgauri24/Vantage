@@ -52,12 +52,12 @@ const Marketplace = () => {
                         <p className="text-text-muted">Explore active engagement opportunities.</p>
                     </div>
 
-                    <div className="flex gap-2 bg-secondary-bg border border-border p-1 rounded-lg">
-                        {['All', 'Legal', 'Financial', 'Tech', 'Consulting'].map((cat) => (
+                    <div className="flex gap-2 bg-secondary-bg border border-border p-1 rounded-lg overflow-x-auto max-w-full">
+                        {['All', ...new Set(jobs.map(job => job.category))].sort().map((cat) => (
                             <button
                                 key={cat}
                                 onClick={() => setFilter(cat)}
-                                className={`px-4 py-2 rounded text-xs uppercase tracking-wider transition-all ${filter === cat
+                                className={`px-4 py-2 rounded text-xs uppercase tracking-wider transition-all whitespace-nowrap ${filter === cat
                                     ? 'bg-accent-gold text-primary-bg font-bold shadow-lg'
                                     : 'text-text-muted hover:text-text-main hover:bg-white/5'
                                     }`}

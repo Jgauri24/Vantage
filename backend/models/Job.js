@@ -19,14 +19,14 @@ const jobSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['Legal', 'Financial', 'Technology', 'Consulting', 'Other']
+   
   },
   budget: {
     type: Number,
     required: true
   },
   location: {
-    type: String, // e.g., "Remote" or "New York, NY"
+    type: String,
     default: 'Remote'
   },
   status: {
@@ -42,6 +42,10 @@ const jobSchema = new mongoose.Schema({
   paymentHeld: {
     type: Boolean,
     default: false
+  },
+  amountPaid: {
+    type: Number,
+    default: 0
   },
   paymentReleased: {
     type: Boolean,

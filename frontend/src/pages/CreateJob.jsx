@@ -87,15 +87,33 @@ const CreateJob = () => {
                                 <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Category</label>
                                 <select
                                     name="category"
-                                    value={formData.category}
-                                    onChange={handleChange}
+                                    value={['Legal', 'Financial', 'Technology', 'Consulting'].includes(formData.category) ? formData.category : 'Other'}
+                                    onChange={(e) => {
+                                        if (e.target.value === 'Other') {
+                                            setFormData({ ...formData, category: '' });
+                                        } else {
+                                            setFormData({ ...formData, category: e.target.value });
+                                        }
+                                    }}
                                     className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all"
                                 >
                                     <option value="Legal">Legal</option>
                                     <option value="Financial">Financial</option>
-                                    <option value="Tech">Tech</option>
+                                    <option value="Technology">Technology</option>
                                     <option value="Consulting">Consulting</option>
+                                    <option value="Other">Other (Specify)</option>
                                 </select>
+                                {(!['Legal', 'Financial', 'Technology', 'Consulting'].includes(formData.category) || formData.category === '') && (
+                                    <input
+                                        type="text"
+                                        name="customCategory"
+                                        value={formData.category} // We use the same state
+                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                        className="mt-2 w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600 animate-fade-in"
+                                        placeholder="Type your category..."
+                                        required
+                                    />
+                                )}
                             </div>
 
                             <div className="space-y-1">

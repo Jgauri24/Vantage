@@ -108,7 +108,7 @@ router.delete('/payment-methods/:paymentMethodId', authenticate, async (req, res
       pm => pm.paymentMethodId !== paymentMethodId
     );
 
-    // If removed method was default and there are others, set first as default
+
     const hasDefault = user.savedPaymentMethods.some(pm => pm.isDefault);
     if (!hasDefault && user.savedPaymentMethods.length > 0) {
       user.savedPaymentMethods[0].isDefault = true;
@@ -124,73 +124,47 @@ router.delete('/payment-methods/:paymentMethodId', authenticate, async (req, res
 });
 
 // Fund wallet with saved payment method
+// Fund wallet (SIMULATED / TEST MODE)
 router.post('/fund-wallet', authenticate, async (req, res) => {
   try {
-    const { amount, paymentMethodId } = req.body;
+    const { amount } = req.body;
 
     if (!amount || amount < 1) {
       return res.status(400).json({ error: 'Invalid amount. Minimum $1' });
     }
 
-    if (amount > 10000) {
-      return res.status(400).json({ error: 'Maximum funding amount is $10,000' });
+    if (amount > 1000000) {
+      return res.status(400).json({ error: 'Maximum funding amount is $1,000,000' });
     }
 
     const user = await User.findById(req.user.id);
 
-    if (!user.stripeCustomerId) {
-      return res.status(400).json({ error: 'No payment methods found' });
-    }
 
-    // Create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: 'usd',
-      customer: user.stripeCustomerId,
-      payment_method: paymentMethodId,
-      off_session: true,
-      confirm: true,
-      description: `Wallet funding for ${user.email}`,
-      metadata: {
-        userId: user._id.toString(),
-        type: 'wallet_funding'
-      }
-    });
+    // Update wallet balance
+    user.walletBalance = (user.walletBalance || 0) + amount;
+    await user.save();
 
-    if (paymentIntent.status === 'succeeded') {
-      // Update wallet balance
-      user.walletBalance = (user.walletBalance || 0) + amount;
-      await user.save();
-
-      // Create transaction record
-      const transaction = new Transaction({
+    // Create transaction record
+    const transaction = new Transaction({
         user: user._id,
         type: 'wallet_funding',
         amount: amount,
         balanceAfter: user.walletBalance,
-        stripePaymentIntentId: paymentIntent.id,
+        stripePaymentIntentId: 'simulated_' + Date.now(),
         status: 'completed',
-        description: `Wallet funded with $${amount.toFixed(2)}`
-      });
-      await transaction.save();
+        description: `Wallet funded with $${amount.toFixed(2)} (Test Mode)`
+    });
+    await transaction.save();
 
-      res.json({
+    res.json({
         success: true,
         walletBalance: user.walletBalance,
         transaction: transaction
-      });
-    } else {
-      res.status(400).json({ error: 'Payment failed', status: paymentIntent.status });
-    }
+    });
+
   } catch (error) {
     console.error('Fund wallet error:', error);
-    
-    // Handle specific Stripe errors
-    if (error.type === 'StripeCardError') {
-      res.status(400).json({ error: error.message });
-    } else {
-      res.status(500).json({ error: 'Payment processing failed' });
-    }
+    res.status(500).json({ error: 'Payment processing failed' });
   }
 });
 
