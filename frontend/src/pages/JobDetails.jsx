@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import WalletFundingModal from '../components/WalletFundingModal';
+import ChatBox from '../components/ChatBox';
+
 
 const JobDetails = () => {
     const { id } = useParams();
@@ -210,7 +212,7 @@ const JobDetails = () => {
                         </div>
 
                         {/* Bids List (Client Only) */}
-                        {user?.role === 'Client' && job.client?._id === user?.id && (
+                        {user?.role === 'Client' && (job.client?._id === user?.id || job.client?._id === user?._id) && (
                             <div className="bg-secondary-bg border border-border rounded-xl p-8 shadow-xl">
                                 <h3 className="font-serif text-xl text-text-main mb-6">Received Proposals ({bids.length})</h3>
 
@@ -253,12 +255,22 @@ const JobDetails = () => {
                                 )}
                             </div>
                         )}
+
+                        {/* Chat Section */}
+                        {((user?.role === 'Client' && (job.client?._id === user?.id || job.client?._id === user?._id)) ||
+                            (user?.role === 'Provider' && job.status !== 'Open')) && (
+                                <div className="mt-8">
+                                    <ChatBox jobId={id} jobTitle={job.title} />
+                                </div>
+                            )}
+
                     </div>
 
                     {/* Sidebar / Action Area */}
                     <div className="lg:col-span-1">
                         {/* Wallet Balance Widget for Client */}
-                        {user?.role === 'Client' && job.client?._id === user?.id && (
+                        {user?.role === 'Client' && (job.client?._id === user?.id || job.client?._id === user?._id) && (
+
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl mb-6">
                                 <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2 font-bold">Your Wallet Balance</div>
                                 <div className="text-2xl font-serif text-accent-gold mb-4">${user.walletBalance?.toFixed(2) || '0.00'}</div>
