@@ -70,7 +70,7 @@ app.get('/api/profile', authenticate, (req, res) => {
 });
 
 // Catch-all for React routing (ALWAYS LAST)
-app.get('*', (req, res) => {
+app.use( (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ message: 'API route not found' });
   }
