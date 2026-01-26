@@ -19,9 +19,7 @@ const io = new Server(server, {
 
 
 
-app.use(cors({
-
-}));
+app.use(cors());
 
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI ;
