@@ -4,6 +4,7 @@ const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
 const Message = require('./models/Message'); 
+const path = require('path');
 
 require('dotenv').config();
 
@@ -60,6 +61,18 @@ app.use('/uploads', express.static('uploads'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Vantage API is running' });
+});
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+
+app.get('*', (req, res) => {
+
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ message: 'API route not found' });
+  }
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
 });
 
 app.get('/api/profile', authenticate, (req, res) => {
