@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -12,7 +13,7 @@ const Register = () => {
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { register } = useAuth();
+    const { register, googleLogin } = useAuth();
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -29,6 +30,19 @@ const Register = () => {
             navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.error || 'Registration failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setError('');
+        setLoading(true);
+        try {
+            await googleLogin(credentialResponse.credential, formData.role, formData.company);
+            navigate('/dashboard');
+        } catch (err) {
+            setError(err.response?.data?.error || 'Google registration failed.');
         } finally {
             setLoading(false);
         }
@@ -143,6 +157,22 @@ const Register = () => {
                             {loading ? 'Processing...' : 'Initialize Membership'}
                         </button>
                     </form>
+
+                    <div className="mt-6 flex items-center gap-3">
+                        <div className="h-px bg-border flex-1"></div>
+                        <span className="text-[10px] text-text-muted uppercase tracking-widest">or continue with</span>
+                        <div className="h-px bg-border flex-1"></div>
+                    </div>
+
+                    <div className="mt-6 flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => setError('Google Authentication Failed')}
+                            theme="filled_black"
+                            shape="pill"
+                            width="100%"
+                        />
+                    </div>
 
                     <p className="mt-8 text-center text-text-muted text-xs">
                         Already authorized?{' '}

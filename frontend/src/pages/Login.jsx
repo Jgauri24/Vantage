@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const { login } = useAuth();
+    const { login, googleLogin } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -20,6 +21,19 @@ const Login = () => {
             navigate('/dashboard');
         } catch (err) {
             setError(err.response?.data?.error || 'Login failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setError('');
+        setLoading(true);
+        try {
+            await googleLogin(credentialResponse.credential);
+            navigate('/dashboard');
+        } catch (err) {
+            setError(err.response?.data?.error || 'Google login failed.');
         } finally {
             setLoading(false);
         }
@@ -77,6 +91,22 @@ const Login = () => {
                             {loading ? 'Authenticating...' : 'Access Terminal'}
                         </button>
                     </form>
+
+                    <div className="mt-6 flex items-center gap-3">
+                        <div className="h-px bg-border flex-1"></div>
+                        <span className="text-[10px] text-text-muted uppercase tracking-widest">or continue with</span>
+                        <div className="h-px bg-border flex-1"></div>
+                    </div>
+
+                    <div className="mt-6 flex justify-center">
+                        <GoogleLogin
+                            onSuccess={handleGoogleSuccess}
+                            onError={() => setError('Google Authentication Failed')}
+                            theme="filled_black"
+                            shape="pill"
+                            width="100%"
+                        />
+                    </div>
 
                     <p className="mt-8 text-center text-text-muted text-xs">
                         Not part of the network?{' '}
