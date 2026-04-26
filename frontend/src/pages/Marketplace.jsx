@@ -38,7 +38,7 @@ const Marketplace = () => {
 
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="text-text-muted hover:text-accent-gold text-xs uppercase tracking-wider transition-colors"
+                        className="text-text-muted hover:text-[var(--color-accent-gold-hover)] text-xs uppercase tracking-wider transition-colors"
                     >
                         Return to Dashboard
                     </button>
@@ -86,7 +86,7 @@ const Marketplace = () => {
                         {filteredJobs.map((job) => (
                             <div key={job._id} className="group bg-secondary-bg border border-border hover:border-accent-gold/50 rounded-xl p-6 shadow-lg hover:shadow-accent-gold/5 transition-all duration-300 flex flex-col h-full">
                                 <div className="flex justify-between items-start mb-4">
-                                    <span className="px-2 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-accent-gold">
+                                    <span className="px-2 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-[var(--color-accent-gold-hover)]">
                                         {job.category}
                                     </span>
                                     <span className="text-xs text-text-muted font-mono">
@@ -94,7 +94,7 @@ const Marketplace = () => {
                                     </span>
                                 </div>
 
-                                <h3 className="font-serif text-xl text-text-main mb-2 line-clamp-2 group-hover:text-accent-gold transition-colors">
+                                <h3 className="font-serif text-xl text-text-main mb-2 line-clamp-2 group-hover:text-[var(--color-accent-gold-hover)] transition-colors">
                                     {job.title}
                                 </h3>
 

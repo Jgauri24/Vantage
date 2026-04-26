@@ -192,7 +192,7 @@ const JobDetails = () => {
         return (
             <div className="min-h-screen bg-primary-bg text-text-main p-8 text-center">
                 Engagement not found.
-                <button onClick={() => navigate('/dashboard')} className="block mx-auto mt-4 text-accent-gold underline">Return to Dashboard</button>
+                <button onClick={() => navigate('/dashboard')} className="block mx-auto mt-4 text-[var(--color-accent-gold-hover)] underline">Return to Dashboard</button>
             </div>
         );
     }
@@ -203,12 +203,12 @@ const JobDetails = () => {
                 <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="flex items-center gap-2 text-text-muted hover:text-accent-gold transition-colors text-xs uppercase tracking-widest font-bold"
+                        className="flex items-center gap-2 text-text-muted hover:text-[var(--color-accent-gold-hover)] transition-colors text-xs uppercase tracking-widest font-bold"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         Dashboard
                     </button>
-                    <div className="font-serif text-lg text-accent-gold">Job Details</div>
+                    <div className="font-serif text-lg text-[var(--color-accent-gold-hover)]">Job Details</div>
                     <div className="w-20"></div>
                 </div>
             </header>
@@ -231,11 +231,25 @@ const JobDetails = () => {
                         <div className="bg-secondary-bg border border-border rounded-xl p-8 shadow-xl">
                             <div className="flex justify-between items-start mb-6">
                                 <div>
-                                    <span className="px-3 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-accent-gold mb-3 inline-block mr-2">
+                                    <span className="px-3 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-[var(--color-accent-gold)] mb-3 inline-block mr-2">
                                         {job.category}
                                     </span>
-                                    {job.status === 'Reviewing' && <span className="px-3 py-1 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/50 text-[10px] uppercase tracking-wider mb-3 inline-block">Reviewing</span>}
-                                    {job.status === 'Completed' && <span className="px-3 py-1 rounded-md bg-green-500/20 text-green-400 border border-green-500/50 text-[10px] uppercase tracking-wider mb-3 inline-block">Completed</span>}
+                                    
+                                    {/* Milestone Stepper */}
+                                    <div className="flex items-center gap-2 mb-6 max-w-md mt-2">
+                                        {['Open', 'Contracted', 'In-Progress', 'Reviewing', 'Completed'].map((step, index, arr) => {
+                                            const currentIndex = arr.indexOf(job.status);
+                                            const isActive = index <= currentIndex;
+                                            return (
+                                                <div key={step} className="flex items-center flex-1 last:flex-none">
+                                                    <div className={`w-3 h-3 rounded-full flex-shrink-0 transition-colors duration-500 ${isActive ? 'bg-[var(--color-accent-gold)] shadow-[0_0_8px_rgba(201,168,130,0.5)]' : 'bg-[var(--color-border)]'}`} title={step}></div>
+                                                    {index < arr.length - 1 && (
+                                                        <div className={`h-px w-full mx-2 transition-colors duration-500 ${index < currentIndex ? 'bg-[var(--color-accent-gold)]' : 'bg-[var(--color-border)]'}`}></div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                     <h1 className="font-serif text-3xl text-text-main mb-2">{job.title}</h1>
                                     <div className="text-sm text-text-muted flex items-center gap-4">
                                         <span>Posted by {job.client?.company || job.client?.name}</span>
@@ -266,7 +280,7 @@ const JobDetails = () => {
                                             setChatWithUser(job.client);
                                             setChatModalOpen(true);
                                         }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-accent-gold/10 hover:bg-accent-gold/20 border border-accent-gold/30 text-accent-gold rounded-lg text-xs uppercase tracking-wider font-bold transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2 btn-secondary rounded-lg text-xs uppercase tracking-wider font-bold transition-colors"
                                         title="Chat with client"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,7 +296,7 @@ const JobDetails = () => {
                                             setChatWithUser(job.client);
                                             setChatModalOpen(true);
                                         }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-accent-gold/10 hover:bg-accent-gold/20 border border-accent-gold/30 text-accent-gold rounded-lg text-xs uppercase tracking-wider font-bold transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2 btn-secondary rounded-lg text-xs uppercase tracking-wider font-bold transition-colors"
                                         title="Chat with client"
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,7 +351,7 @@ const JobDetails = () => {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => setProfileModalProviderId(bid.provider._id)}
-                                                                        className="text-[10px] uppercase tracking-wider font-semibold text-accent-gold hover:text-accent-gold/80"
+                                                                        className="text-[10px] uppercase tracking-wider font-semibold text-[var(--color-accent-gold-hover)] hover:text-[var(--color-accent-gold-hover)]/80"
                                                                     >
                                                                         View Profile
                                                                     </button>
@@ -347,7 +361,7 @@ const JobDetails = () => {
                                                                             setChatWithUser(bid.provider);
                                                                             setChatModalOpen(true);
                                                                         }}
-                                                                        className="text-accent-gold hover:text-accent-gold/80 transition-colors"
+                                                                        className="text-[var(--color-accent-gold-hover)] hover:text-[var(--color-accent-gold-hover)]/80 transition-colors"
                                                                         title="Chat with provider"
                                                                     >
                                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,7 +373,7 @@ const JobDetails = () => {
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="font-mono text-accent-gold">
+                                                        <div className="font-mono text-[var(--color-accent-gold-hover)]">
                                                             ${bid.amount?.toLocaleString()}
                                                         </div>
                                                         {job.status === 'Open' && (
@@ -398,7 +412,7 @@ const JobDetails = () => {
 
                             <div className="bg-secondary-bg border border-border rounded-xl p-6 shadow-xl mb-6">
                                 <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2 font-bold">Your Wallet Balance</div>
-                                <div className="text-2xl font-serif text-accent-gold mb-4">${user.walletBalance?.toFixed(2) || '0.00'}</div>
+                                <div className="text-2xl font-serif text-[var(--color-accent-gold-hover)] mb-4">${user.walletBalance?.toFixed(2) || '0.00'}</div>
                                 <button
                                     onClick={() => setShowFundingModal(true)}
                                     className="w-full bg-primary-bg border border-border text-text-muted hover:text-text-main hover:border-accent-gold py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors"
@@ -435,7 +449,7 @@ const JobDetails = () => {
                                     </div>
                                     <button
                                         type="submit"
-                                        className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300"
+                                        className="w-full btn-primary"
                                     >
                                         Submit Bid
                                     </button>
@@ -455,7 +469,7 @@ const JobDetails = () => {
                                                 setChatWithUser(job.client);
                                                 setChatModalOpen(true);
                                             }}
-                                            className="text-accent-gold hover:text-accent-gold/80 transition-colors"
+                                            className="text-[var(--color-accent-gold-hover)] hover:text-[var(--color-accent-gold-hover)]/80 transition-colors"
                                             title="Chat with client"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,13 +498,13 @@ const JobDetails = () => {
                                             type="file"
                                             accept=".pdf,image/*"
                                             onChange={(e) => setWorkFile(e.target.files[0])}
-                                            className="w-full text-xs text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-accent-gold/10 file:text-accent-gold hover:file:bg-accent-gold/20 cursor-pointer"
+                                            className="w-full text-xs text-text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-accent-gold/10 file:text-[var(--color-accent-gold-hover)] hover:file:bg-accent-gold/20 cursor-pointer"
                                         />
                                     </div>
 
                                     <button
                                         onClick={handleSubmitWork}
-                                        className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300"
+                                        className="w-full btn-primary"
                                     >
                                         {job.status === 'Contracted' ? 'Submit Work for Review' : 'Submit Final Work'}
                                     </button>
@@ -511,7 +525,7 @@ const JobDetails = () => {
                                             href={job.workSubmission.fileUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="bg-accent-gold/10 hover:bg-accent-gold/20 border border-accent-gold/30 text-accent-gold p-3 rounded flex items-center gap-3 transition-colors mb-2"
+                                            className="btn-secondary p-3 rounded flex items-center gap-3 transition-colors mb-2"
                                         >
                                             <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                             <span className="truncate font-medium text-sm">{job.workSubmission.fileName || 'View Submission'}</span>
@@ -546,7 +560,7 @@ const JobDetails = () => {
                                 <p className="text-text-muted text-sm">This engagement is closed.</p>
                                 <div className="mt-4 p-3 bg-secondary-bg/50 rounded border border-border">
                                     <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Total Paid</div>
-                                    <div className="text-xl font-mono text-accent-gold">${(job.amountPaid || job.budget).toLocaleString()}</div>
+                                    <div className="text-xl font-mono text-[var(--color-accent-gold-hover)]">${(job.amountPaid || job.budget).toLocaleString()}</div>
                                 </div>
                             </div>
                         )}

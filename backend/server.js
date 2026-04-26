@@ -31,6 +31,7 @@ const userRoutes = require('./routes/users');
 const paymentRoutes = require('./routes/payments');
 const messageRoutes = require('./routes/messages');
 const adminRoutes = require('./routes/admin');
+const chatbotRoutes = require('./routes/chatbot');
 
 
 const { authenticate } = require('./middleware/auth');
@@ -54,6 +55,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 app.use('/uploads', express.static('uploads'));
 

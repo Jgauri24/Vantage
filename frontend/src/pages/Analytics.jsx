@@ -50,14 +50,14 @@ const Analytics = () => {
                 <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="flex items-center gap-2 text-text-muted hover:text-accent-gold transition-colors text-xs uppercase tracking-widest font-bold"
+                        className="flex items-center gap-2 text-text-muted hover:text-[var(--color-accent-gold-hover)] transition-colors text-xs uppercase tracking-widest font-bold"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
                         Dashboard
                     </button>
-                    <div className="font-serif text-lg text-accent-gold">Professional Analytics</div>
+                    <div className="font-serif text-lg text-[var(--color-accent-gold-hover)]">Professional Analytics</div>
                     <div className="w-20"></div>
                 </div>
             </header>
@@ -76,9 +76,9 @@ const Analytics = () => {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                    <div className="bg-secondary-bg border border-border p-6 rounded-2xl shadow-xl">
+                    <div className="card-premium">
                         <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2 font-bold">Wallet Balance</div>
-                        <div className="text-3xl font-serif text-accent-gold">
+                        <div className="text-3xl font-serif text-[var(--color-accent-gold-hover)]">
                             $
                             {user?.walletBalance?.toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
@@ -86,7 +86,7 @@ const Analytics = () => {
                             }) || '0.00'}
                         </div>
                     </div>
-                    <div className="bg-secondary-bg border border-border p-6 rounded-2xl shadow-xl">
+                    <div className="card-premium">
                         <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2 font-bold">
                             {user?.role === 'Provider' ? 'Total Earnings' : 'Total Spent'}
                         </div>
@@ -98,7 +98,7 @@ const Analytics = () => {
                             })}
                         </div>
                     </div>
-                    <div className="bg-secondary-bg border border-border p-6 rounded-2xl shadow-xl">
+                    <div className="card-premium">
                         <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2 font-bold">Engagements</div>
                         <div className="text-3xl font-serif text-text-main">{completed}</div>
                     </div>
@@ -107,7 +107,7 @@ const Analytics = () => {
                 <section className="mb-10">
                     <h2 className="font-serif text-lg mb-4 text-text-main">Activity Overview</h2>
                     {hasActivity ? (
-                        <div className="bg-secondary-bg border border-border rounded-2xl p-6 shadow-xl space-y-4">
+                        <div className="card-premium space-y-4">
                             <div className="flex flex-col md:flex-row md:items-end gap-6">
                                 <div className="flex-1 space-y-2">
                                     <div className="flex justify-between text-[11px] uppercase tracking-[0.18em] text-text-muted">
@@ -116,7 +116,7 @@ const Analytics = () => {
                                     </div>
                                     <div className="h-2 rounded-full bg-primary-bg/70 overflow-hidden">
                                         <div
-                                            className="h-full bg-emerald-400"
+                                            className="h-full bg-[var(--color-success)]"
                                             style={{ width: total > 0 ? `${(completed / total) * 100}%` : '0%' }}
                                         />
                                     </div>
@@ -128,7 +128,7 @@ const Analytics = () => {
                                     </div>
                                     <div className="h-2 rounded-full bg-primary-bg/70 overflow-hidden">
                                         <div
-                                            className="h-full bg-sky-400"
+                                            className="h-full bg-[var(--color-accent-gold)]"
                 style={{ width: total > 0 ? `${(active / total) * 100}%` : '0%' }}
 
                                         />
@@ -169,7 +169,7 @@ const Analytics = () => {
                     )}
                 </section>
 
-                <div className="bg-secondary-bg border border-border rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+                <div className="card-premium relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-5">
                         <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"></path>

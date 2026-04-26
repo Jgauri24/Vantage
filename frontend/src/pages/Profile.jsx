@@ -131,7 +131,7 @@ const Profile = () => {
                         <div className="w-8 h-8 rounded bg-gradient-to-br from-accent-gold to-yellow-700 flex items-center justify-center text-primary-bg font-serif font-bold text-xl">V</div>
                         <span className="font-serif text-lg tracking-tight text-text-main">Vantage</span>
                     </div>
-                    <button onClick={() => navigate('/dashboard')} className="text-text-muted hover:text-accent-gold text-xs uppercase tracking-wider transition-colors">Return to Dashboard</button>
+                    <button onClick={() => navigate('/dashboard')} className="text-text-muted hover:text-[var(--color-accent-gold-hover)] text-xs uppercase tracking-wider transition-colors">Return to Dashboard</button>
                 </div>
             </header>
 
@@ -300,7 +300,7 @@ const Profile = () => {
                                     <div>
                                         <h2 className="text-2xl font-serif text-text-main">{profileData.name}</h2>
                                         <div className="inline-flex items-center gap-2 mb-2">
-                                            <span className="px-2 py-0.5 rounded-full bg-accent-gold/10 border border-accent-gold/40 text-[10px] font-semibold uppercase tracking-widest text-accent-gold">
+                                            <span className="px-2 py-0.5 rounded-full bg-accent-gold/10 border border-accent-gold/40 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-accent-gold-hover)]">
                                                 {user?.role}
                                             </span>
                                             {user?.role === 'Provider' && profileData.hourlyRate && (
@@ -388,7 +388,7 @@ const Profile = () => {
                                     </div>
                                     <div>
                                         <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">Rate</h3>
-                                        <div className="text-2xl font-mono text-accent-gold">
+                                        <div className="text-2xl font-mono text-[var(--color-accent-gold-hover)]">
                                             {profileData.hourlyRate ? `$${profileData.hourlyRate}/hr` : 'Not set'}
                                         </div>
                                     </div>
@@ -415,7 +415,7 @@ const Profile = () => {
 
                     <div className="bg-primary-bg/50 border border-border rounded-xl p-6 mb-6">
                         <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2 font-bold">Current Balance</div>
-                        <div className="text-4xl font-serif text-accent-gold">${walletBalance.toFixed(2)}</div>
+                        <div className="text-4xl font-serif text-[var(--color-accent-gold-hover)]">${walletBalance.toFixed(2)}</div>
                     </div>
 
                     {/* Transaction History */}

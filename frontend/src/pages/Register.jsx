@@ -52,11 +52,11 @@ const Register = () => {
         <div className="min-h-screen flex items-center justify-center px-4 bg-primary-bg bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary-bg to-primary-bg py-12">
             <div className="w-full max-w-[480px]">
                 <div className="text-center mb-10">
-                    <p className="text-accent-gold text-xs uppercase tracking-[0.2em] mb-2 font-medium">Join the Network</p>
+                    <p className="text-[var(--color-accent-gold-hover)] text-xs uppercase tracking-[0.2em] mb-2 font-medium">Join the Network</p>
                     <h1 className="font-serif text-4xl text-text-main tracking-tight">Vantge Membership</h1>
                 </div>
 
-                <div className="bg-secondary-bg/50 backdrop-blur-xl border border-border p-8 rounded-2xl shadow-2xl">
+                <div className="card-premium max-w-[400px] w-full mx-auto">
                     {error && (
                         <div className="bg-red-500/10 text-red-400 px-4 py-3 mb-6 text-sm border border-red-500/20 rounded-lg text-center">
                             {error}
@@ -152,7 +152,7 @@ const Register = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3.5 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300 disabled:opacity-50 mt-4"
+                            className="w-full btn-primary disabled:opacity-50 mt-4"
                         >
                             {loading ? 'Processing...' : 'Initialize Membership'}
                         </button>
@@ -176,7 +176,7 @@ const Register = () => {
 
                     <p className="mt-8 text-center text-text-muted text-xs">
                         Already authorized?{' '}
-                        <Link to="/login" className="text-accent-gold hover:text-white transition-colors font-medium">
+                        <Link to="/login" className="text-[var(--color-accent-gold-hover)] hover:text-[var(--color-text-main)] transition-colors font-medium">
                             Access Terminal
                         </Link>
                     </p>

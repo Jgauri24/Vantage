@@ -1,24 +1,106 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @theme {
-  --color-primary-bg: #0F172A; /* Slate 900 */
-  --color-secondary-bg: #1E293B; /* Slate 800 */
-  --color-text-main: #F1F5F9; /* Slate 100 */
-  --color-text-muted: #94A3B8; /* Slate 400 */
-  --color-accent-gold: #D4AF37; /* Antique Gold */
-  --color-accent-gold-hover: #B4942E;
-  --color-border: #334155; /* Slate 700 */
-  --color-success: #10B981; /* Emerald 500 */
+  --color-primary-bg: #F2EBE3; /* Deepened warm background */
+  --color-secondary-bg: #FFFFFF; /* Pure white for maximum contrast on cards */
+  --color-text-main: #120F0D; /* Pure dark */
+  --color-text-muted: #5C4D42; /* Darkened for readability */
+  --color-accent-gold: #B89065; /* Deepened gold */
+  --color-accent-gold-hover: #7A5C43; /* Deepened mocha */
+  --color-border: #D8C7B8; /* Darkened border for visibility */
+  --color-success: #3A6B4A; 
+  --color-destructive: #8A3333; 
+  --color-dark-surface: #171311;
   
-  --font-family-serif: 'Playfair Display', serif;
+  --font-family-serif: 'Playfair Display', 'Cormorant Garamond', serif;
   --font-family-mono: 'JetBrains Mono', monospace;
-  --font-family-sans: 'Inter', system-ui, sans-serif;
+  --font-family-sans: 'Inter', 'DM Sans', system-ui, sans-serif;
+
+  --shadow-premium: 0 8px 32px rgba(139, 111, 82, 0.15);
+  --shadow-premium-hover: 0 12px 48px rgba(139, 111, 82, 0.25);
 }
 
+@layer base {
+  * {
+    @apply transition-all duration-250 ease-in-out;
+  }
+  
+  body {
+    @apply bg-[var(--color-primary-bg)] text-[var(--color-text-main)] font-sans antialiased;
+    line-height: 1.6;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-wide text-[var(--color-text-main)];
+  }
+  
+  /* Inputs: no harsh blue outlines ever */
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none ring-0;
+  }
+}
 
-body {
-  background-color: var(--color-primary-bg);
-  color: var(--color-text-main);
-  font-family: var(--font-family-sans);
+@layer components {
+  /* Button Styles */
+  .btn-primary {
+    @apply bg-[var(--color-accent-gold-hover)] text-white rounded-[10px] px-5 py-2.5 font-medium shadow-sm transition-all duration-250 ease-in-out inline-block text-center cursor-pointer;
+  }
+  .btn-primary:hover {
+    @apply -translate-y-[1px];
+    box-shadow: 0 4px 12px rgba(139, 111, 82, 0.2);
+  }
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed hover:translate-y-0 hover:shadow-sm;
+  }
+  
+  .btn-secondary {
+    @apply bg-transparent border border-[var(--color-accent-gold-hover)] text-[var(--color-accent-gold-hover)] rounded-[10px] px-5 py-2.5 font-medium transition-all duration-250 ease-in-out inline-block text-center cursor-pointer;
+  }
+  .btn-secondary:hover {
+    @apply bg-[var(--color-accent-gold-hover)] text-white;
+  }
+  
+  /* Card Styles */
+  .card-premium {
+    @apply bg-[var(--color-secondary-bg)] rounded-[16px] border border-[var(--color-border)] p-8 transition-shadow duration-300;
+    box-shadow: var(--shadow-premium);
+  }
+  .card-premium:hover {
+    box-shadow: var(--shadow-premium-hover);
+  }
+  
+  /* Input Styles */
+  .input-premium {
+    @apply bg-[var(--color-secondary-bg)] border-[1.5px] border-[var(--color-border)] rounded-[10px] px-4 py-2.5 text-[var(--color-text-main)] w-full transition-all duration-250 ease-in-out;
+  }
+  .input-premium:focus {
+    @apply border-[var(--color-accent-gold)] ring-1 ring-[var(--color-accent-gold)] outline-none;
+  }
+  
+  /* Badges */
+  .badge-premium {
+    @apply rounded-full px-3 py-1 text-sm font-medium bg-[var(--color-border)] text-[var(--color-text-main)] inline-block;
+  }
+  .badge-success {
+    @apply bg-[var(--color-success)] text-white;
+  }
+  .badge-destructive {
+    @apply bg-[var(--color-destructive)] text-white;
+  }
+  
+  /* Divider */
+  .divider {
+    @apply border-t border-[var(--color-border)] my-6;
+  }
+  
+  /* Skeleton */
+  .skeleton-premium {
+    @apply animate-pulse bg-[var(--color-border)] rounded-md;
+  }
+  
+  /* Uppercase Labels */
+  .label-uppercase {
+    @apply uppercase tracking-[0.15em] text-[var(--color-text-muted)] text-xs font-medium block mb-2;
+  }
 }

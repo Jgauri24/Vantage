@@ -68,7 +68,7 @@ const Dashboard = () => {
                     <div className="flex items-center gap-6">
                         <div className="text-right hidden sm:block">
                             <p className="font-medium text-xs text-text-main">{user?.name}</p>
-                            <p className="text-[10px] font-mono uppercase tracking-wider text-accent-gold">{user?.role}</p>
+                            <p className="text-[10px] font-mono uppercase tracking-wider text-[var(--color-accent-gold-hover)]">{user?.role}</p>
                         </div>
                         {user?.role === 'Admin' && (
                             <button
@@ -80,7 +80,7 @@ const Dashboard = () => {
                         )}
                         <button
                             onClick={logout}
-                            className="text-text-muted hover:text-white text-xs uppercase tracking-wider transition-colors"
+                            className="text-text-muted hover:text-[var(--color-text-main)] text-xs uppercase tracking-wider transition-colors"
                         >
                             Logout
                         </button>
@@ -93,7 +93,7 @@ const Dashboard = () => {
                 {/* Hero Welcome */}
                 <div className="mb-10 relative">
                     <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl text-text-main mb-2">
-                        Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">{user?.name}</span>
+                        Welcome, <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-accent-gold-hover)] to-[var(--color-text-main)]">{user?.name}</span>
                     </h1>
                     <p className="text-text-muted max-w-xl">
                         Your command center for {user?.role === 'Client' ? 'managing service acquisitions' : 'professional service delivery'}.
@@ -108,7 +108,7 @@ const Dashboard = () => {
                     <div className="md:col-span-4 lg:col-span-3 space-y-6">
                         {/* Performance Stats */}
                         {analytics && (
-                            <div className="bg-secondary-bg border border-border rounded-xl p-5 shadow-lg">
+                            <div className="card-premium">
                                 <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">
                                     {user?.role === 'Client' ? 'Your Activity' : 'Performance'}
                                 </h3>
@@ -117,7 +117,7 @@ const Dashboard = () => {
                                         <div className="text-[10px] uppercase text-text-muted mb-1">
                                             {user?.role === 'Client' ? 'Total Spent' : 'Total Earned'}
                                         </div>
-                                        <div className="text-2xl font-serif text-accent-gold">
+                                        <div className="text-2xl font-serif text-[var(--color-accent-gold-hover)]">
                                             ${analytics.monetaryValue?.toLocaleString() || '0'}
                                         </div>
                                     </div>
@@ -134,12 +134,12 @@ const Dashboard = () => {
                             </div>
                         )}
 
-                        <div className="bg-secondary-bg border border-border rounded-xl p-5 shadow-lg">
+                        <div className="card-premium">
                             <h3 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-4">Identity</h3>
                             <div className="space-y-4">
                                 <div>
                                     <label className="text-[10px] uppercase text-text-muted block mb-1">Account ID</label>
-                                    <div className="font-mono text-xs text-accent-gold bg-primary-bg/50 p-2 rounded border border-border/50 truncate">
+                                    <div className="font-mono text-xs text-[var(--color-accent-gold-hover)] bg-primary-bg/50 p-2 rounded border border-border/50 truncate">
                                         {user?.id}
                                     </div>
                                 </div>
@@ -156,7 +156,7 @@ const Dashboard = () => {
                             </div>
                             <button
                                 onClick={() => navigate('/profile')}
-                                className="w-full mt-4 text-[10px] uppercase tracking-wider font-bold text-accent-gold border border-accent-gold/30 hover:bg-accent-gold hover:text-primary-bg py-2 rounded transition-all duration-300"
+                                className="w-full mt-4 text-[10px] uppercase tracking-wider font-bold text-[var(--color-accent-gold-hover)] border border-accent-gold/30 hover:bg-accent-gold hover:text-primary-bg py-2 rounded transition-all duration-300"
                             >
                                 Manage Identity
                             </button>
@@ -194,14 +194,14 @@ const Dashboard = () => {
                     {/* Ledger / Main Content */}
                     <div className="md:col-span-8 lg:col-span-9 space-y-6">
                         {/* Quick Actions */}
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                             {user?.role === 'Client' ? (
                                 <>
                                     <button
                                         onClick={() => navigate('/jobs/create')}
                                         className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-[var(--color-accent-gold-hover)] transition-colors">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
                                         </div>
                                         <div className="text-sm font-semibold text-text-main">Post Job</div>
@@ -212,7 +212,7 @@ const Dashboard = () => {
                                         onClick={() => navigate('/marketplace')}
                                         className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-[var(--color-accent-gold-hover)] transition-colors">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                         </div>
                                         <div className="text-sm font-semibold text-text-main">Marketplace</div>
@@ -223,7 +223,7 @@ const Dashboard = () => {
                                         onClick={() => navigate('/analytics')}
                                         className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-[var(--color-accent-gold-hover)] transition-colors">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                                         </div>
                                         <div className="text-sm font-semibold text-text-main">Analytics</div>
@@ -236,7 +236,7 @@ const Dashboard = () => {
                                         onClick={() => navigate('/marketplace')}
                                         className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-[var(--color-accent-gold-hover)] transition-colors">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                                         </div>
                                         <div className="text-sm font-semibold text-text-main">Browse Jobs</div>
@@ -247,7 +247,7 @@ const Dashboard = () => {
                                         onClick={() => navigate('/profile')}
                                         className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-[var(--color-accent-gold-hover)] transition-colors">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                         </div>
                                         <div className="text-sm font-semibold text-text-main">My Profile</div>
@@ -258,7 +258,7 @@ const Dashboard = () => {
                                         onClick={() => navigate('/analytics')}
                                         className="bg-secondary-bg hover:bg-secondary-bg/80 border border-border hover:border-accent-gold/50 transition-all p-4 rounded-xl text-left group"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-accent-gold transition-colors">
+                                        <div className="w-8 h-8 rounded-full bg-primary-bg border border-border flex items-center justify-center mb-3 group-hover:border-accent-gold group-hover:text-[var(--color-accent-gold-hover)] transition-colors">
                                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                                         </div>
                                         <div className="text-sm font-semibold text-text-main">Analytics</div>
@@ -269,8 +269,8 @@ const Dashboard = () => {
                         </div>
 
                         {/* Ledger Table */}
-                        <div className="bg-secondary-bg border border-border rounded-xl overflow-hidden shadow-lg">
-                            <div className="px-6 py-4 border-b border-border flex justify-between items-center bg-primary-bg/30">
+                        <div className="card-premium overflow-hidden !p-0">
+                            <div className="px-6 py-6 border-b border-border flex justify-between items-center bg-primary-bg/30">
                                 <h3 className="font-serif text-lg text-text-main">
                                     {user?.role === 'Client' ? 'My Jobs' : 'Active Contracts'}
                                 </h3>
@@ -287,15 +287,15 @@ const Dashboard = () => {
                                     </div>
                                 ) : activeJobs.length === 0 ? (
                                     <div className="p-12 text-center text-text-muted">
-                                        <div className="w-16 h-16 bg-primary-bg border border-border rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <svg className="w-6 h-6 text-border" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                        <div className="w-16 h-16 bg-[var(--color-primary-bg)] border border-[var(--color-border)] rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                                            <svg className="w-6 h-6 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                                         </div>
                                         <p className="text-sm">
                                             {user?.role === 'Client'
                                                 ? 'No jobs posted yet.'
                                                 : 'No active contracts.'}
                                         </p>
-                                        <p className="text-xs mt-1 text-text-muted/70">
+                                        <p className="text-xs mt-1 text-[var(--color-text-muted)]">
                                             {user?.role === 'Client'
                                                 ? 'Post a job to get started.'
                                                 : 'Browse the marketplace to find opportunities.'}
@@ -333,7 +333,7 @@ const Dashboard = () => {
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4">
-                                                            <span className="px-2 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-accent-gold">
+                                                            <span className="px-2 py-1 rounded-md bg-primary-bg border border-border text-[10px] uppercase tracking-wider text-[var(--color-accent-gold-hover)]">
                                                                 {job.category || job.job?.category}
                                                             </span>
                                                         </td>
@@ -354,15 +354,15 @@ const Dashboard = () => {
                                                                 (job.status || job.job?.status) === 'Contracted' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                                                                     (job.status || job.job?.status) === 'In-Progress' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
                                                                         (job.status || job.job?.status) === 'Reviewing' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                                                                            (job.status || job.job?.status) === 'Completed' ? 'bg-gray-500/10 text-gray-400 border-gray-500/20' :
-                                                                                'bg-gray-500/10 text-gray-400 border-gray-500/20'
+                                                                            (job.status || job.job?.status) === 'Completed' ? 'bg-secondary-bg/10 text-text-muted border-border/20' :
+                                                                                'bg-secondary-bg/10 text-text-muted border-border/20'
                                                                 }`}>
                                                                 <span className={`w-1.5 h-1.5 rounded-full ${(job.status || job.job?.status) === 'Open' ? 'bg-green-400' :
                                                                     (job.status || job.job?.status) === 'Contracted' ? 'bg-blue-400' :
                                                                         (job.status || job.job?.status) === 'In-Progress' ? 'bg-yellow-400' :
                                                                             (job.status || job.job?.status) === 'Reviewing' ? 'bg-purple-400' :
-                                                                                (job.status || job.job?.status) === 'Completed' ? 'bg-gray-400' :
-                                                                                    'bg-gray-400'
+                                                                                (job.status || job.job?.status) === 'Completed' ? 'bg-secondary-bg' :
+                                                                                    'bg-secondary-bg'
                                                                     }`}></span>
                                                                 {job.status || job.job?.status}
                                                             </span>

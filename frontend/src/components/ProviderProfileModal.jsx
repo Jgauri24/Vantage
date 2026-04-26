@@ -37,7 +37,7 @@ const ProviderProfileModal = ({ providerId, isOpen, onClose }) => {
                     <h2 className="font-serif text-xl text-text-main">Provider Profile</h2>
                     <button
                         onClick={onClose}
-                        className="text-text-muted hover:text-accent-gold text-sm"
+                        className="text-text-muted hover:text-[var(--color-accent-gold-hover)] text-sm"
                     >
                         Close
                     </button>
@@ -133,7 +133,7 @@ const ProviderProfileModal = ({ providerId, isOpen, onClose }) => {
                                                     href={link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-accent-gold hover:underline break-all"
+                                                    className="text-[var(--color-accent-gold-hover)] hover:underline break-all"
                                                 >
                                                     {link}
                                                 </a>

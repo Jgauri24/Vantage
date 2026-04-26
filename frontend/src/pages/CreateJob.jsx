@@ -39,7 +39,7 @@ const CreateJob = () => {
                 <div className="mb-8">
                     <button
                         onClick={() => navigate('/dashboard')}
-                        className="text-text-muted hover:text-accent-gold text-xs uppercase tracking-wider mb-4 flex items-center gap-2 transition-colors"
+                        className="text-text-muted hover:text-[var(--color-accent-gold-hover)] text-xs uppercase tracking-wider mb-4 flex items-center gap-2 transition-colors"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         Back to Dashboard
@@ -63,7 +63,7 @@ const CreateJob = () => {
                                 name="title"
                                 value={formData.title}
                                 onChange={handleChange}
-                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600"
+                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-[var(--color-text-muted)]"
                                 placeholder="e.g. Corporate Legal Consultation"
                                 required
                             />
@@ -76,7 +76,7 @@ const CreateJob = () => {
                                 value={formData.description}
                                 onChange={handleChange}
                                 rows="4"
-                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600"
+                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-[var(--color-text-muted)]"
                                 placeholder="Detailed requirements..."
                                 required
                             />
@@ -109,7 +109,7 @@ const CreateJob = () => {
                                         name="customCategory"
                                         value={formData.category} // We use the same state
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        className="mt-2 w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600 animate-fade-in"
+                                        className="mt-2 w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-[var(--color-text-muted)] animate-fade-in"
                                         placeholder="Type your category..."
                                         required
                                     />
@@ -123,7 +123,7 @@ const CreateJob = () => {
                                     name="budget"
                                     value={formData.budget}
                                     onChange={handleChange}
-                                    className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600"
+                                    className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-[var(--color-text-muted)]"
                                     placeholder="e.g. 5000"
                                     required
                                 />
@@ -137,7 +137,7 @@ const CreateJob = () => {
                                 name="location"
                                 value={formData.location}
                                 onChange={handleChange}
-                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600"
+                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-[var(--color-text-muted)]"
                                 placeholder="e.g. Remote / New York, NY"
                                 required
                             />
@@ -154,7 +154,7 @@ const CreateJob = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300 disabled:opacity-50"
+                                className="flex-1 btn-primary disabled:opacity-50"
                             >
                                 {loading ? 'Processing...' : 'Post Engagement'}
                             </button>

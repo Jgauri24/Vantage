@@ -123,17 +123,17 @@ const AdminDashboard = () => {
                     <div className="flex items-center gap-6">
                         <button
                             onClick={() => navigate('/dashboard')}
-                            className="text-text-muted hover:text-accent-gold text-xs uppercase tracking-wider transition-colors"
+                            className="text-text-muted hover:text-[var(--color-accent-gold-hover)] text-xs uppercase tracking-wider transition-colors"
                         >
                             User Dashboard
                         </button>
                         <div className="text-right hidden sm:block">
                             <p className="font-medium text-xs text-text-main">{user?.name}</p>
-                            <p className="text-[10px] font-mono uppercase tracking-wider text-accent-gold">{user?.role}</p>
+                            <p className="text-[10px] font-mono uppercase tracking-wider text-[var(--color-accent-gold-hover)]">{user?.role}</p>
                         </div>
                         <button
                             onClick={logout}
-                            className="text-text-muted hover:text-white text-xs uppercase tracking-wider transition-colors"
+                            className="text-text-muted hover:text-[var(--color-text-main)] text-xs uppercase tracking-wider transition-colors"
                         >
                             Logout
                         </button>
@@ -152,7 +152,7 @@ const AdminDashboard = () => {
                             onClick={() => setActiveTab(tab)}
                             className={`px-6 py-3 text-xs uppercase tracking-wider font-bold transition-colors ${
                                 activeTab === tab
-                                    ? 'text-accent-gold border-b-2 border-accent-gold'
+                                    ? 'text-[var(--color-accent-gold-hover)] border-b-2 border-accent-gold'
                                     : 'text-text-muted hover:text-text-main'
                             }`}
                         >
@@ -166,25 +166,25 @@ const AdminDashboard = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div className="bg-secondary-bg border border-border rounded-xl p-6">
                             <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2">Total Users</div>
-                            <div className="text-3xl font-serif text-accent-gold">{overview.users.total}</div>
+                            <div className="text-3xl font-serif text-[var(--color-accent-gold-hover)]">{overview.users.total}</div>
                             <div className="text-xs text-text-muted mt-2">
                                 {overview.users.clients} Clients • {overview.users.providers} Providers
                             </div>
                         </div>
                         <div className="bg-secondary-bg border border-border rounded-xl p-6">
                             <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2">Total Jobs</div>
-                            <div className="text-3xl font-serif text-accent-gold">{overview.jobs.total}</div>
+                            <div className="text-3xl font-serif text-[var(--color-accent-gold-hover)]">{overview.jobs.total}</div>
                             <div className="text-xs text-text-muted mt-2">
                                 {overview.jobs.open} Open • {overview.jobs.completed} Completed
                             </div>
                         </div>
                         <div className="bg-secondary-bg border border-border rounded-xl p-6">
                             <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2">Total Bids</div>
-                            <div className="text-3xl font-serif text-accent-gold">{overview.bids.total}</div>
+                            <div className="text-3xl font-serif text-[var(--color-accent-gold-hover)]">{overview.bids.total}</div>
                         </div>
                         <div className="bg-secondary-bg border border-border rounded-xl p-6">
                             <div className="text-[10px] uppercase tracking-widest text-text-muted mb-2">Platform Volume</div>
-                            <div className="text-3xl font-serif text-accent-gold">${overview.platform.totalVolume?.toLocaleString()}</div>
+                            <div className="text-3xl font-serif text-[var(--color-accent-gold-hover)]">${overview.platform.totalVolume?.toLocaleString()}</div>
                         </div>
                     </div>
                 )}

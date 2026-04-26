@@ -11,6 +11,7 @@ import JobDetails from './pages/JobDetails';
 import Profile from './pages/Profile';
 import Analytics from './pages/Analytics';
 import AdminDashboard from './pages/AdminDashboard';
+import AIChatbot from './components/AIChatbot';
 
 function App() {
   return (
@@ -76,6 +77,7 @@ function App() {
           />
           <Route path="/" element={<Navigate to="/dashboard" />} />
         </Routes>
+        <AIChatbot />
       </BrowserRouter>
     </AuthProvider>
   );

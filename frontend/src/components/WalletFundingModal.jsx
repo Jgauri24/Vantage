@@ -49,7 +49,7 @@ const WalletFundingModal = ({ isOpen, onClose, onSuccess }) => {
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h2 className="font-serif text-2xl text-text-main">Add Funds</h2>
-                        <p className="text-[10px] text-accent-gold uppercase tracking-wider font-bold mt-1">Test Mode Active</p>
+                        <p className="text-[10px] text-[var(--color-accent-gold-hover)] uppercase tracking-wider font-bold mt-1">Test Mode Active</p>
                     </div>
                     <button onClick={onClose} className="text-text-muted hover:text-text-main transition-colors">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -40,44 +40,47 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 bg-primary-bg bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary-bg to-primary-bg">
-            <div className="w-full max-w-[400px]">
-                <div className="text-center mb-10">
-                    <p className="text-accent-gold text-xs uppercase tracking-[0.2em] mb-2 font-medium">Professional Services</p>
-                    <h1 className="font-serif text-5xl text-text-main tracking-tight mb-6">Vantage</h1>
+        <div className="min-h-screen flex items-center justify-center px-4 bg-[var(--color-primary-bg)] relative overflow-hidden">
+            {/* Elegant architectural background lines */}
+            <div className="absolute inset-0 pointer-events-none flex justify-center opacity-30">
+                <div className="h-full w-px bg-gradient-to-b from-transparent via-[var(--color-border)] to-transparent mx-32"></div>
+                <div className="h-full w-px bg-gradient-to-b from-transparent via-[var(--color-border)] to-transparent mx-32"></div>
+            </div>
+
+            <div className="w-full max-w-[440px] relative z-10">
+                <div className="text-center mb-12">
+                    <div className="w-12 h-12 rounded bg-[var(--color-text-main)] text-[var(--color-primary-bg)] flex items-center justify-center font-serif text-2xl mx-auto mb-6 shadow-xl">V</div>
+                    <p className="text-[var(--color-accent-gold-hover)] text-[10px] uppercase tracking-[0.3em] mb-3 font-bold">Vantage Concierge</p>
+                    <h1 className="font-serif text-4xl text-[var(--color-text-main)] tracking-tight">Access Terminal</h1>
                 </div>
 
-                <div className="bg-secondary-bg/50 backdrop-blur-xl border border-border p-8 rounded-2xl shadow-2xl">
-                    <h2 className="font-sans text-sm font-semibold text-text-main mb-6 uppercase tracking-widest text-center border-b border-border pb-4">
-                        Executive Login
-                    </h2>
-
+                <div className="card-premium">
                     {error && (
-                        <div className="bg-red-500/10 text-red-400 px-4 py-3 mb-6 text-sm border border-red-500/20 rounded-lg text-center">
+                        <div className="bg-[var(--color-destructive)]/10 text-[var(--color-destructive)] px-4 py-3 mb-6 text-sm border border-[var(--color-destructive)]/20 rounded-lg text-center font-medium">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="space-y-1">
-                            <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Email</label>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-[0.15em] text-[var(--color-text-main)] font-bold ml-1 block">Corporate Email</label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600"
-                                placeholder="name@company.com"
+                                className="input-premium"
+                                placeholder="name@organization.com"
                                 required
                             />
                         </div>
 
-                        <div className="space-y-1">
-                            <label className="text-xs uppercase tracking-wider text-text-muted font-medium ml-1">Password</label>
+                        <div className="space-y-2">
+                            <label className="text-[10px] uppercase tracking-[0.15em] text-[var(--color-text-main)] font-bold ml-1 block">Security Phrase</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-primary-bg/50 border border-border rounded-lg px-4 py-3 text-text-main focus:outline-none focus:border-accent-gold focus:ring-1 focus:ring-accent-gold transition-all placeholder-gray-600"
+                                className="input-premium font-mono tracking-widest text-sm"
                                 placeholder="••••••••"
                                 required
                             />
@@ -86,35 +89,36 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-accent-gold to-yellow-600 text-primary-bg py-3.5 font-bold uppercase tracking-widest text-xs rounded-lg hover:shadow-lg hover:shadow-accent-gold/20 transition-all duration-300 disabled:opacity-50 mt-2"
+                            className="w-full btn-primary text-sm uppercase tracking-[0.15em] font-bold py-4 mt-4"
                         >
-                            {loading ? 'Authenticating...' : 'Access Terminal'}
+                            {loading ? 'Authenticating...' : 'Establish Connection'}
                         </button>
                     </form>
 
-                    <div className="mt-6 flex items-center gap-3">
-                        <div className="h-px bg-border flex-1"></div>
-                        <span className="text-[10px] text-text-muted uppercase tracking-widest">or continue with</span>
-                        <div className="h-px bg-border flex-1"></div>
+                    <div className="mt-8 flex items-center gap-4">
+                        <div className="h-px bg-[var(--color-border)] flex-1"></div>
+                        <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-[0.2em] font-medium">SSO Access</span>
+                        <div className="h-px bg-[var(--color-border)] flex-1"></div>
                     </div>
 
-                    <div className="mt-6 flex justify-center">
+                    <div className="mt-8 flex justify-center">
                         <GoogleLogin
                             onSuccess={handleGoogleSuccess}
                             onError={() => setError('Google Authentication Failed')}
-                            theme="filled_black"
-                            shape="pill"
+                            theme="outline"
+                            size="large"
+                            shape="rectangular"
                             width="100%"
                         />
                     </div>
-
-                    <p className="mt-8 text-center text-text-muted text-xs">
-                        Not part of the network?{' '}
-                        <Link to="/register" className="text-accent-gold hover:text-white transition-colors font-medium">
-                            Apply for Access
-                        </Link>
-                    </p>
                 </div>
+                
+                <p className="mt-10 text-center text-[var(--color-text-muted)] text-[11px] uppercase tracking-widest font-medium">
+                    Not a member?{' '}
+                    <Link to="/register" className="text-[var(--color-text-main)] hover:text-[var(--color-accent-gold-hover)] border-b border-[var(--color-text-main)] hover:border-[var(--color-accent-gold-hover)] pb-0.5 transition-colors">
+                        Apply for Access
+                    </Link>
+                </p>
             </div>
         </div>
     );
