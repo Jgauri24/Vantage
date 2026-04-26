@@ -17,4 +17,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Auto-logout on 401 (invalid/expired token)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Don't redirect if already on login/register page or if it's a login attempt
+      const isAuthRoute = error.config?.url?.includes('/auth/');
+      if (!isAuthRoute) {
+        localStorage.removeItem('vantage_token');
+        localStorage.removeItem('vantage_user');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

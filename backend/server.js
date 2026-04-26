@@ -10,6 +10,15 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+
+// Debug logging for deployment
+console.log('--- Deployment Info ---');
+console.log('Current Directory:', process.cwd());
+console.log('__dirname:', __dirname);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('JWT_SECRET status:', process.env.JWT_SECRET ? 'Defined' : 'UNDEFINED (using default)');
+console.log('-----------------------');
+
 const io = new Server(server, {
   cors: {
     origin: '*', 
@@ -60,9 +69,18 @@ app.use('/api/chatbot', chatbotRoutes);
 app.use('/uploads', express.static('uploads'));
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Vantage API is running' });
+  res.json({ 
+    status: 'ok', 
+    message: 'Vantage API is running',
+    env: process.env.NODE_ENV || 'development'
+  });
 });
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Serve static files from the React app
+const frontendPath = path.join(__dirname, '../frontend/dist');
+console.log('Frontend Static Path:', frontendPath);
+app.use(express.static(frontendPath));
+
 
 // Protected API route
 app.get('/api/profile', authenticate, (req, res) => {
@@ -75,8 +93,15 @@ app.use( (req, res) => {
     return res.status(404).json({ message: 'API route not found' });
   }
 
-  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html'));
+  const indexPath = path.join(__dirname, '../frontend/dist', 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Error sending index.html:', err.message);
+      res.status(404).send('Frontend not found. Please ensure the frontend is built.');
+    }
+  });
 });
+
 
 
 io.on('connection', (socket) => {
